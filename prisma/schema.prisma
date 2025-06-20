@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// User Scehma
+enum SelectedRole {
+  SuperAdmin
+  Admin
+  Doctor
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String 
+  role SelectedRole
+  otp String?
+  expiresIn String?
+  cattle Cattle[]
+  milk Milk[]
+  feedStock FeedStock[]
+  feedConsumption FeedConsumption[]
+}
+
+// Cattle Management
+
+enum CattleType {
+  COW
+  BUFFALO
+  GOAT
+}
+
+enum CattleBreed {
+  KARAMPASU
+  KANNI_ADU
+  SALEM_BLACK
+  TELLICHERRY
+  KANGAYAM
+  UMBLACHERY
+  BARGUR
+  HALLIKAR
+  ONGOLE
+  MURRAH
+  SURTI
+  MEHSANA
+  LOCAL_NON_DESCRIPT
+}
+
+enum HealthStatus {
+  HEALTHY
+  INJURED
+}
+
+enum InseminationType {
+  NATURAL_SERVICE
+  ARTIFICIAL_INSEMINATION
+  EMBRYO_TRANSFER
+  IN_VITRO_FERTILIZATION
+  UNKNOWN
+}
+
+enum ParentOrigin {
+  FARM_OWNED
+  FARM_BORN
+  PURCHASED
+  GOVT_BREEDING_CENTER
+  PRIVATE_CENTER
+  UNKNOWN
+}
+
+model Cattle {
+  id Int @id @default(autoincrement())
+  cattleName String @unique 
+  healthStatus HealthStatus
+  type CattleType
+  weight Int
+  active Boolean @default(true)
+  snf Decimal @db.Decimal(5,2)
+  image1 String
+  image2 String
+  fatherInsemination InseminationType
+  parent ParentOrigin
+  breed CattleBreed
+  birthDate DateTime
+  farmEntryDate DateTime
+  purchaseAmount Decimal @db.Decimal(10,2)
+  vendorName String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId Int
+  user User @relation(fields: [userId],references: [id],onDelete:Cascade)
+  milk Milk []
+  feed FeedConsumption []
+  checkup Checkup[]
+  vaccination Vaccination[]
+  calf Calf[]
+}
+
+// calf table
+
+enum SelectGender {
+  MALE
+  FEMALE
+}
+
+model Calf {
+  id Int @id @default(autoincrement())
+  calfId String @unique
+  birthDate DateTime
+  gender SelectGender
+  healthStatus HealthStatus
+  weight Decimal @db.Decimal(5,2)
+  cattleName String
+  cattle Cattle @relation(fields: [cattleName] ,references: [cattleName],onDelete: Cascade)
+}
+
+// Animal Milk Record
+
+enum SelectedSession {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+enum SelectedMilkGrade {
+  A1
+  A2
+  A3
+}
+
+model Milk {
+  id Int @id @default(autoincrement())
+  date DateTime
+  milkGrade SelectedMilkGrade
+  morningMilk Decimal @db.Decimal(5,2)
+  afternoonMilk Decimal @db.Decimal(5,2)
+  eveningMilk Decimal @db.Decimal(5,2)
+  cattleId String
+  cattle Cattle @relation(fields: [cattleId],references: [cattleName],onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId Int
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+}
+
+// Feed Stock Management
+
+enum SelectedUnit {
+  KG
+  PIECES
+  PACKETS
+}
+
+
+model FeedStock {
+  id Int @id @default(autoincrement())
+  name String 
+  date DateTime
+  unit SelectedUnit
+  quantity Decimal @db.Decimal(10,2)
+  notes String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  feedStockHistory FeedStockHistory[]
+  userId Int
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+}
+
+//Feed Stock Tracking
+
+model FeedStockHistory {
+  id Int @id @default(autoincrement())
+  newQuantity Decimal @db.Decimal(10,2)
+  type String
+  feedId Int
+  feedStock FeedStock @relation(fields: [feedId],references: [id],onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+//Feed Consumption
+
+enum FeedType {
+  WATER
+  FEED
+}
+
+model FeedConsumption {
+  id Int @id @default(autoincrement())
+  session SelectedSession
+  quantity Decimal @db.Decimal(5,2)
+  date DateTime
+  feedType FeedType
+  feedName String
+  unit String
+  cattleName String
+  cattle Cattle @relation(fields: [cattleName],references: [cattleName],onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId Int
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+}
+
+
+//Health Management
+
+model Checkup {
+  id Int @id @default(autoincrement())
+  date DateTime
+  prescription String
+  description String
+  doctorName String
+  doctorPhone String
+  cattleName String
+  cattle Cattle @relation(fields: [cattleName],references: [cattleName],onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Vaccination Management
+model Vaccination {
+  id Int @id @default(autoincrement())
+  date DateTime
+  name String
+  notes String
+  doctorName String
+  doctorPhone String
+  cattleName String
+  cattle Cattle @relation(fields: [cattleName],references: [cattleName],onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
