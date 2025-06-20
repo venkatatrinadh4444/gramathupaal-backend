@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateVaccinationDto } from './dto/add-vaccination.dto';
-import { catchBlock } from 'src/common/catch-block';
+import { catchBlock } from '../common/catch-block';
 import { EditVaccinationDto } from './dto/edit-vaccination.dto';
 
 @Injectable()

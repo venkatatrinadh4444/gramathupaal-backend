@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AddMilkRecordDto } from './dto/add-milk-record.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { catchBlock } from 'src/common/catch-block';
+import { PrismaService } from '../prisma/prisma.service';
+import { catchBlock } from '../common/catch-block';
 
 @Injectable()
 export class MilkService {

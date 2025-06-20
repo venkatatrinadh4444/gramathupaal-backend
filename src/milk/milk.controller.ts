@@ -23,7 +23,7 @@ import {
   ApiUnauthorizedResponse,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard'
 import { AddMilkRecordDto } from './dto/add-milk-record.dto';
 import { MilkService } from './milk.service';
 import { matches } from 'class-validator';

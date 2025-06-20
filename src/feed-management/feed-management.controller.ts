@@ -22,7 +22,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FeedManagementService } from './feed-management.service';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ConsumedFeedDto } from './dto/consumed-feed.dto';
 import { matches } from 'class-validator';
 

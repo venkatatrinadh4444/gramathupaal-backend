@@ -12,7 +12,8 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { isEmail } from 'class-validator';
 import { UserService } from './users.service';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { LoginDto } from 'src/auth/dto/login-user.dto';
+import { LoginDto } from '../auth/dto/login-user.dto';
+
 import {
   ApiTags,
   ApiBearerAuth,

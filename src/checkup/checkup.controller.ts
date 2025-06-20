@@ -10,7 +10,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { CheckupService } from './checkup.service';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateCheckupDto } from './dto/add-checkup.dto';
 import { EditCheckupDto } from './dto/edit-checkup.dto';
 import {

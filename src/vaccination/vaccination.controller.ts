@@ -11,7 +11,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { VaccinationService } from './vaccination.service';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateVaccinationDto } from './dto/add-vaccination.dto';
 import { EditVaccinationDto } from './dto/edit-vaccination.dto';
 import {

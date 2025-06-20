@@ -19,7 +19,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FeedStockService } from './feed-stock.service';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AddFeedStock } from './dto/add-feed-stock.dto';
 
 @ApiTags('Feed Stock Management')

@@ -6,14 +6,14 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RegisterDto } from 'src/auth/dto/register-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { RegisterDto } from '../auth/dto/register-user.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import * as otpGenerator from 'otp-generator';
-import { sendOtpToUser } from 'src/common/send-otp';
+import { sendOtpToUser } from '../common/send-otp';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { LoginDto } from 'src/auth/dto/login-user.dto';
-import { catchBlock } from 'src/common/catch-block';
+import { LoginDto } from '../auth/dto/login-user.dto';
+import { catchBlock } from '../common/catch-block';
 
 @Injectable()
 export class UserService {

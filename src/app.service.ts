@@ -1,5 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { catchBlock } from "./common/catch-block";
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class AppService {

@@ -3,9 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { ConsumedFeedDto } from './dto/consumed-feed.dto';
-import { catchBlock } from 'src/common/catch-block';
+import { catchBlock } from '../common/catch-block';
 
 @Injectable()
 export class FeedManagementService {
