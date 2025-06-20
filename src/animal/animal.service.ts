@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { AddAnimalDto } from "./dto/add-animal.dto";
-import { PrismaService } from "src/prisma/prisma.service";
-import { catchBlock } from "src/common/catch-block";
+import { PrismaService } from "../prisma/prisma.service";
+import { catchBlock } from "../common/catch-block";
 import { put } from "@vercel/blob";
 import { ConfigService } from "@nestjs/config";
 import { $Enums } from "@prisma/client";
