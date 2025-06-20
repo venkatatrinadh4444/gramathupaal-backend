@@ -14,10 +14,10 @@ import {
   Request,
   Delete,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AddAnimalDto } from './dto/add-animal.dto';
 import { AnimalService } from './animal.service';
-import { VerifySuperAdmin } from 'src/common/guards/verify-super-admin.guard';
+import { VerifySuperAdmin } from '../common/guards/verify-super-admin.guard';
 import {
   ApiBearerAuth,
   ApiBody,
