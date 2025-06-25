@@ -1,4 +1,13 @@
-import { Body, Controller, Post, Res, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Res,
+  BadRequestException,
+  Delete,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login-user.dto';
@@ -11,7 +20,9 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiTags,
+  ApiOkResponse,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @ApiTags('Authentication')
 @Controller('api/auth')
@@ -34,7 +45,7 @@ export class AuthController {
           id: 1,
           name: 'Tom Holland',
           email: 'tom@example.com',
-          role:'SuperAdmin'
+          role: 'SuperAdmin',
         },
       },
     },
@@ -77,7 +88,7 @@ export class AuthController {
     return {
       message: 'Login successful',
       userDetails: resultData.userDetails,
-      token:resultData?.token
+      token: resultData?.token,
     };
   }
 
@@ -94,7 +105,7 @@ export class AuthController {
           id: 2,
           name: 'Tom Holland',
           email: 'tom@example.com',
-          role:'SuperAdmin'
+          role: 'SuperAdmin',
         },
       },
     },
@@ -122,4 +133,47 @@ export class AuthController {
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.registerUser(registerDto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('logout')
+  @ApiOperation({ summary: 'Logout a user by clearing the auth token cookie' })
+  @ApiOkResponse({
+    description: 'User logged out successfully',
+    schema: {
+      example: {
+        message: 'Logout successful!',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Token not found in request or user not authenticated',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Token not found!',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized request (missing or invalid JWT token)',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  async logoutUser(@Req() req: Request, @Res() res: Response) {
+    const user = (req as any).user;
+  
+    if (!user?.token) {
+      throw new BadRequestException('Token not found!');
+    }
+  
+    res.clearCookie('user_token');
+    return res.status(200).json({ message: 'Logout successful!' });
+  }
+  
 }

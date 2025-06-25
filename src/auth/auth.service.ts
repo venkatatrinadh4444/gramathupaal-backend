@@ -49,4 +49,5 @@ export class AuthService {
   async registerUser(registerDto: RegisterDto) {
     return this.userService.createUser(registerDto);
   }
+
 }

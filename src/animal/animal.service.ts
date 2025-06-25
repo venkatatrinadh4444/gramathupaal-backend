@@ -111,12 +111,17 @@ export class AnimalService {
           }
         })
         
-        const overAllAverageFeed=averageFeed._avg.quantity ?? 0
+        const calfCount=await this.prisma.calf.count({
+          where:{cattleName},
+          orderBy:{birthDate:'desc'}
+        })
+
 
         const animalDetails={
           overallAverageMilk:overallAverageMilk/3,
-          lastVaccination:vaccinationRecords[0]?.date,
-          overAllAverageFeed,
+          lastVaccination:vaccinationRecords[0]?.date || null,
+          averageFeed:averageFeed._avg.quantity ?? 0,
+          calfCount:calfCount ?? 0,
           cattleDetails:animal
         }
 
