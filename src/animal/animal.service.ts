@@ -7,6 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { $Enums } from "@prisma/client";
 import { EditAnimalDto } from "./dto/edit-animal.dto";
 import { AddNewCalfDto } from "./dto/add-calf.dto";
+import { take } from "rxjs";
 
 @Injectable() 
 export class AnimalService {
@@ -55,10 +56,13 @@ export class AnimalService {
         }
     }
 
-    // Get all cattle  names
-    async gettingAllCattles() {
+    // Get all cattles
+    async gettingAllCattles(page:number) {
       try {
-        const allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{farmEntryDate:'desc'}})
+        const skip=(page-1)*25
+        const limit=25
+        const totalPages=await this.prisma.cattle.count()
+        const allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
         const allCattles:any[]=[]
 
         for(const eachCattle of allCattlesDetails) {
@@ -74,10 +78,14 @@ export class AnimalService {
           })
           const eachCattleDetails={
             ...eachCattle,
-            averageMilk:Number(averageValue._avg.morningMilk)+Number(averageValue._avg.afternoonMilk)+Number(averageValue._avg.eveningMilk)/3
+            averageMilk:Number(averageValue._avg.morningMilk)+Number(averageValue._avg.afternoonMilk)+Number(averageValue._avg.eveningMilk)/3,
+            totalPages:Math.ceil(totalPages/25),
+            totalAnimalCount:totalPages
+            
           }
           allCattles.push(eachCattleDetails)
         }
+
         return {message:'Showing all cattles',allCattles}
       } catch (err) {
         catchBlock(err)

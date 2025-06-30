@@ -101,15 +101,21 @@ export class AnimalController {
 
   // Fetching all animals
   @UseGuards(JwtAuthGuard)
-  @Get('all-animals')
+  @Get('all-animals/:page')
   @ApiOperation({ summary: 'Retrieve all cattle details' })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter page no (e.g.,1)',
+  })
   @ApiOkResponse({
     description: 'List of all cattle',
     type: [AddAnimalDto],
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access' })
-  async showAllCattles() {
-    return this.animalServie.gettingAllCattles();
+  async showAllCattles(@Param('page',ParseIntPipe) page:number) {
+    return this.animalServie.gettingAllCattles(page);
   }
 
   //Getting all details of specific animal
