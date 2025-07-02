@@ -62,8 +62,14 @@ export class MilkController {
 
   //Fetching all milk records
   @UseGuards(JwtAuthGuard)
-  @Get('all-milk-records')
+  @Get('all-milk-records/:page')
   @ApiOperation({ summary: 'Get all milk records' })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter a valid animal name (e.g., 1)',
+  })
   @ApiOkResponse({
     description: 'List of all milk records',
     schema: {
@@ -86,8 +92,8 @@ export class MilkController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllMilkRecords() {
-    return this.milkService.gettingAllMilkRecords();
+  async gettingAllMilkRecords(@Param('page',ParseIntPipe) page:number) {
+    return this.milkService.gettingAllMilkRecords(page);
   }
 
   //Fetching specific animal milk records

@@ -42,8 +42,14 @@ export class MilkService {
   }
 
   //Fetching all milk records
-  async gettingAllMilkRecords() {
+  async gettingAllMilkRecords(page:number) {
     try {
+
+      const skip=(page - 1) * 25
+      const limit=25
+
+      const totalCount= await this.prisma.milk.count()
+
       const allRecords = await this.prisma.milk.findMany({
         orderBy: { date: 'desc' },
         select: {
@@ -61,9 +67,17 @@ export class MilkService {
           eveningMilk: true,
           milkGrade: true,
         },
+        skip:skip,
+        take:limit
       });
 
-      return { message: 'Showing all milk records', allRecords };
+      const milkOverview = {
+        allRecords,
+        totalPages:Math.ceil(totalCount/25),
+        totalRecordsCount:totalCount
+      }
+
+      return { message: 'Showing all milk records', milkOverview };
     } catch (err) {
       catchBlock(err);
     }
