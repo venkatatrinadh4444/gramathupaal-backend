@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AddFeedStock } from './dto/add-feed-stock.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { catchBlock } from '../common/catch-block';
+import { SelectedUnit } from '@prisma/client';
 
 @Injectable()
 export class FeedStockService {
@@ -82,11 +83,79 @@ export class FeedStockService {
   }
 
   //Fetch all feed records
-  async gettingAllFeedRecords() {
+  async gettingAllFeedRecords(page:number,sortBy:string,filter:string,search:string) {
     try {
-        const allRecords=await this.prisma.feedStock.findMany({orderBy:{date:'desc'}})
 
-        return {message:'Showing all feed stock records',allRecords}
+      const skip = (page - 1) * 25;
+      const limit = 25;
+      let message = 'showing initial feed stock data';
+
+      let totalCount = await this.prisma.feedStock.count()
+
+      let allRecords=await this.prisma.feedStock.findMany({orderBy:{date:'desc'},skip:skip,take:limit})
+
+      if(sortBy) {
+        message="showing the filtered feed stock data"
+        switch(sortBy) {
+          case "name-asc":
+            allRecords = await this.prisma.feedStock.findMany({orderBy:{name:'asc'},skip:skip,take:limit})
+            break;
+          case "name-desc":
+            allRecords = await this.prisma.feedStock.findMany({orderBy:{name:'desc'},skip:skip,take:limit})
+            break;
+          case "newest":
+            allRecords = await this.prisma.feedStock.findMany({orderBy:{date:'desc'},skip:skip,take:limit})
+            break;
+          case "oldest":
+            allRecords = await this.prisma.feedStock.findMany({orderBy:{date:'asc'},skip:skip,take:limit})
+            break;
+        }
+      }
+
+      if(filter) {
+        message=`showing the filtered data based on ${filter}`
+        switch(filter) {
+          case filter as SelectedUnit:
+            if (!Object.values(SelectedUnit).includes(filter as SelectedUnit)) {
+                throw new BadRequestException('please enter a valid feed stock unit');
+            }
+            totalCount = await this.prisma.feedStock.count({where:{unit:filter}})
+            allRecords = await this.prisma.feedStock.findMany({where:{
+              unit:filter
+            },skip:skip,take:limit})
+            break;
+          default :
+              throw new BadRequestException('Please enter a valid query value')
+        }
+      }
+
+      if(search) {
+        message=`Showing the feed stock based on the ${search}`
+        totalCount = await this.prisma.feedStock.count({where:{
+          name:{
+            contains:search,
+            mode:'insensitive'
+          }
+        }})
+        allRecords = await this.prisma.feedStock.findMany({
+          where:{
+            name:{
+              contains:search,
+              mode:'insensitive'
+            }
+          },
+          skip:skip,
+          take:limit
+        })
+      }
+
+      const allStockData={
+        allRecords,
+        totalPages: Math.ceil(totalCount / 25),
+        totalRecordsCount: totalCount
+      }
+
+        return {message,allStockData}
     } catch (err) {
         catchBlock(err)
     }

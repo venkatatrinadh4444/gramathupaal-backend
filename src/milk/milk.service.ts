@@ -235,7 +235,7 @@ export class MilkService {
           where: {
             cattle: {
               cattleName: {
-                equals: search.toLowerCase(),
+                contains: search.toLowerCase(),
                 mode: 'insensitive',
               },
             },
@@ -245,7 +245,7 @@ export class MilkService {
           where: {
             cattle: {
               cattleName: {
-                equals: search.toLowerCase(),
+                contains: search.toLowerCase(),
                 mode: 'insensitive',
               },
             },

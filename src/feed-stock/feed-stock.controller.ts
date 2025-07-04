@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import {
   ApiTags,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { FeedStockService } from './feed-stock.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -62,8 +64,35 @@ export class FeedStockController {
 
   //Fetch all feed records
   @UseGuards(JwtAuthGuard)
-  @Get('all-records')
+  @Get('all-records/:page')
   @ApiOperation({ summary: 'Get all feed stock records' })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter a valid animal name (e.g., 1)',
+  })
+  @ApiQuery({
+      name: 'sortBy',
+      required: false,
+      description:
+        'Query string for sorting data',
+      example: 'newest',
+    })
+    @ApiQuery({
+      name: 'filter',
+      required: false,
+      description:
+        'Query string for filtering data',
+      example: 'KG',
+    })
+    @ApiQuery({
+      name: 'search',
+      required: false,
+      description:
+        'Search string for filtering data',
+      example: 'Gross',
+    })
   @ApiOkResponse({
     description: 'List of all feed stock records',
     type: [AddFeedStock],
@@ -71,8 +100,8 @@ export class FeedStockController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllFeedStockRecords() {
-    return this.feedStockService.gettingAllFeedRecords();
+  async gettingAllFeedStockRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
+    return this.feedStockService.gettingAllFeedRecords(page,sortBy,filter,search);
   }
 
   //Fetch specific feed record history

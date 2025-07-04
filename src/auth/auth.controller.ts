@@ -82,7 +82,7 @@ export class AuthController {
         this.configService.get('NODE_ENV') === 'production' ? true : false,
       sameSite:
         this.configService.get('NODE_ENV') === 'production' ? 'none' : 'lax',
-      maxAge: 60 * 60 * 1000,
+      maxAge:24 * 60 * 60 * 1000,
     });
 
     return {
