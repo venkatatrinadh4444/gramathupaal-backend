@@ -1,7 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AddMilkRecordDto } from './dto/add-milk-record.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { catchBlock } from '../common/catch-block';
+import { CattleType } from '@prisma/client';
 
 @Injectable()
 export class MilkService {
@@ -42,15 +47,20 @@ export class MilkService {
   }
 
   //Fetching all milk records
-  async gettingAllMilkRecords(page:number) {
+  async gettingAllMilkRecords(
+    page: number,
+    sortBy: string,
+    filter: string,
+    search: string,
+  ) {
     try {
+      const skip = (page - 1) * 25;
+      const limit = 25;
+      let message = 'showing initial milk data';
 
-      const skip=(page - 1) * 25
-      const limit=25
+      let totalCount = await this.prisma.milk.count();
 
-      const totalCount= await this.prisma.milk.count()
-
-      const allRecords = await this.prisma.milk.findMany({
+      let allRecords = await this.prisma.milk.findMany({
         orderBy: { date: 'desc' },
         select: {
           cattle: {
@@ -67,17 +77,206 @@ export class MilkService {
           eveningMilk: true,
           milkGrade: true,
         },
-        skip:skip,
-        take:limit
+        skip: skip,
+        take: limit,
       });
+
+      if (sortBy) {
+        message = 'showing the sorted data';
+        switch (sortBy) {
+          case 'name-asc':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: {
+                cattle: {
+                  cattleName: 'asc',
+                },
+              },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'name-desc':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: {
+                cattle: {
+                  cattleName: 'desc',
+                },
+              },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'newest':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: { date: 'desc' },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'oldest':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: { date: 'asc' },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          default:
+            throw new BadRequestException('Please enter a valid query value');
+        }
+      }
+
+      if (filter) {
+        message = 'showing the filtered data';
+        switch (filter) {
+          case filter as CattleType:
+            if (!Object.values(CattleType).includes(filter as CattleType)) {
+              throw new BadRequestException('please enter a valid cattle type');
+            }
+            totalCount = await this.prisma.milk.count({
+              where: {
+                cattle: {
+                  type: filter,
+                },
+              },
+            });
+            allRecords = await this.prisma.milk.findMany({
+              where: {
+                cattle: {
+                  type: filter,
+                },
+              },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          default:
+            throw new BadRequestException('Please enter a valid query value');
+        }
+      }
+
+      if (search) {
+        message = `Showing the filtered data for ${search}`;
+        totalCount = await this.prisma.milk.count({
+          where: {
+            cattle: {
+              cattleName: {
+                equals: search.toLowerCase(),
+                mode: 'insensitive',
+              },
+            },
+          },
+        });
+        allRecords = await this.prisma.milk.findMany({
+          where: {
+            cattle: {
+              cattleName: {
+                equals: search.toLowerCase(),
+                mode: 'insensitive',
+              },
+            },
+          },
+          select: {
+            cattle: {
+              select: {
+                image1: true,
+                type: true,
+                cattleName: true,
+              },
+            },
+            id: true,
+            date: true,
+            morningMilk: true,
+            afternoonMilk: true,
+            eveningMilk: true,
+            milkGrade: true,
+          },
+          skip: skip,
+          take: limit,
+        });
+      }
 
       const milkOverview = {
         allRecords,
-        totalPages:Math.ceil(totalCount/25),
-        totalRecordsCount:totalCount
-      }
+        totalPages: Math.ceil(totalCount / 25),
+        totalRecordsCount: totalCount,
+      };
 
-      return { message: 'Showing all milk records', milkOverview };
+      return { message, milkOverview };
     } catch (err) {
       catchBlock(err);
     }
@@ -359,7 +558,10 @@ export class MilkService {
             Number(karampasuMilk._sum.eveningMilk),
         };
 
-        return { message: 'Showing all the dashboard data for Today', dashboardData };
+        return {
+          message: 'Showing all the dashboard data for Today',
+          dashboardData,
+        };
       }
 
       if (session) {
@@ -694,7 +896,9 @@ export class MilkService {
         };
       }
 
-      throw new BadRequestException('Please enter a valid session or date as query value')
+      throw new BadRequestException(
+        'Please enter a valid session or date as query value',
+      );
     } catch (err) {
       catchBlock(err);
     }
@@ -760,7 +964,7 @@ export class MilkService {
                 Number(milk.eveningMilk);
               break;
             default:
-              throw new BadRequestException('Please enter a valid query value')
+              throw new BadRequestException('Please enter a valid query value');
           }
 
           if (totals[type] !== undefined) {

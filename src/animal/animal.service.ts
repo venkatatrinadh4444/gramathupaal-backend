@@ -4,7 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { catchBlock } from "../common/catch-block";
 import { put } from "@vercel/blob";
 import { ConfigService } from "@nestjs/config";
-import { $Enums } from "@prisma/client";
+import { $Enums, CattleBreed } from "@prisma/client";
 import { EditAnimalDto } from "./dto/edit-animal.dto";
 import { AddNewCalfDto } from "./dto/add-calf.dto";
 import { take } from "rxjs";
@@ -57,13 +57,64 @@ export class AnimalService {
     }
 
     // Get all cattles
-    async gettingAllCattles(page:number) {
+    async gettingAllCattles(page:number,sortBy:string,filter:string) {
       try {
         const skip=(page-1)*25
         const limit=25
-        const totalPages=await this.prisma.cattle.count()
-        const allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
+        let totalPages:number | undefined;
+        let allCattlesDetails:any;
+        let message:string='showing the intial paginated data'
+
+        totalPages=await this.prisma.cattle.count()
+        allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
         const allCattles:any[]=[]
+
+        if(sortBy) {
+          message='showing the sorted data'
+          switch(sortBy) {
+            case "name-asc":
+              allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{cattleName:'asc'},skip:skip,take:limit})
+              break;
+            case "name-desc":
+              allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{cattleName:'desc'},skip:skip,take:limit})
+              break;
+            case "newest":
+              allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
+              break;
+            case "oldest":
+              allCattlesDetails=await this.prisma.cattle.findMany({orderBy:{farmEntryDate:'asc'},skip:skip,take:limit})
+              break;
+            default :
+              throw new BadRequestException('Please enter a valid query value')
+          }
+        }
+
+        if(filter) {
+          message='showing the filtered data'
+          switch(filter) {
+            case "COW":
+              totalPages=await this.prisma.cattle.count({where:{type:'COW'}})
+              allCattlesDetails=await this.prisma.cattle.findMany({where:{type:'COW'},orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
+              break;
+            case "BUFFALO":
+              totalPages=await this.prisma.cattle.count({where:{type:'BUFFALO'}})
+              allCattlesDetails=await this.prisma.cattle.findMany({where:{type:'BUFFALO'},orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
+              break;
+            case "GOAT":
+              totalPages=await this.prisma.cattle.count({where:{type:'GOAT'}})
+              allCattlesDetails=await this.prisma.cattle.findMany({where:{type:'GOAT'},orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
+              break;
+            case filter as CattleBreed : 
+               if(!Object.values(CattleBreed).includes(filter as CattleBreed)) {
+                throw new BadRequestException('please enter a valid breed name')
+               }
+               totalPages=await this.prisma.cattle.count({where:{breed:filter}})
+               allCattlesDetails=await this.prisma.cattle.findMany({where:{breed:filter},orderBy:{farmEntryDate:'desc'},skip:skip,take:limit})
+               break;
+            default :
+              throw new BadRequestException('Please enter a valid query value')
+          }
+        }
 
         for(const eachCattle of allCattlesDetails) {
           const averageValue=await this.prisma.milk.aggregate({
@@ -86,7 +137,7 @@ export class AnimalService {
           allCattles.push(eachCattleDetails)
         }
 
-        return {message:'Showing all cattles',allCattles}
+        return {message,allCattles}
       } catch (err) {
         catchBlock(err)
       }

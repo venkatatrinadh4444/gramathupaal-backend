@@ -109,13 +109,27 @@ export class AnimalController {
     example: 1,
     description: 'Enter page no (e.g.,1)',
   })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description:
+      'Query string for sorting data',
+    example: 'newest',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description:
+      'Query string for filtering data',
+    example: 'KARAMPASU',
+  })
   @ApiOkResponse({
     description: 'List of all cattle',
     type: [AddAnimalDto],
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access' })
-  async showAllCattles(@Param('page',ParseIntPipe) page:number) {
-    return this.animalServie.gettingAllCattles(page);
+  async showAllCattles(@Param('page',ParseIntPipe) page:number,@Query('sortBy') sortBy:string , @Query('filter') filter:string) {
+    return this.animalServie.gettingAllCattles(page,sortBy,filter);
   }
 
   //Getting all details of specific animal

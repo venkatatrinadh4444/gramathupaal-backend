@@ -70,6 +70,27 @@ export class MilkController {
     example: 1,
     description: 'Enter a valid animal name (e.g., 1)',
   })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description:
+      'Query string for sorting data',
+    example: 'newest',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description:
+      'Query string for filtering data',
+    example: 'COW',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description:
+      'Search string for filtering data',
+    example: 'kaveri-004',
+  })
   @ApiOkResponse({
     description: 'List of all milk records',
     schema: {
@@ -92,8 +113,8 @@ export class MilkController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllMilkRecords(@Param('page',ParseIntPipe) page:number) {
-    return this.milkService.gettingAllMilkRecords(page);
+  async gettingAllMilkRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
+    return this.milkService.gettingAllMilkRecords(page,sortBy,filter,search);
   }
 
   //Fetching specific animal milk records
