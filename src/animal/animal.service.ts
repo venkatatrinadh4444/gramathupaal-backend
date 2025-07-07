@@ -410,43 +410,41 @@ export class AnimalService {
 
       const cards = [
         {
-          number:'',
-          title: "Total Milk",
-          des: "Total milk collected across animals",
+          number: '',
+          title: 'Total Milk',
+          des: 'Total milk collected across animals',
           percentage: '',
-          status:''
+          status: '',
         },
         {
           number: '',
-          title: "Total Cattle",
-          des: "Quantity of milk classified as A1",
+          title: 'Total Cattle',
+          des: 'Quantity of milk classified as A1',
           percentage: '',
-          status:''
+          status: '',
         },
         {
           number: '',
-          title: "Total Illness Cases",
-          des: "Quantity of milk classified as A2",
+          title: 'Total Illness Cases',
+          des: 'Quantity of milk classified as A2',
           percentage: '',
-          status:''
+          status: '',
         },
         {
           number: '',
-          title: "Newly Added Cattle",
-          des: "The total buffalo milk production",
+          title: 'Newly Added Cattle',
+          des: 'The total buffalo milk production',
           percentage: '',
-          status:''
-    
+          status: '',
         },
         {
           number: '',
-          title: "A2 Milk Production",
-          des: "The total karampasu milk production",
-          percentage:'',
-          status: ''
+          title: 'A2 Milk Production',
+          des: 'The total karampasu milk production',
+          percentage: '',
+          status: '',
         },
       ];
-    
 
       let topSection: any = null;
 
@@ -466,12 +464,22 @@ export class AnimalService {
         });
 
         const totalCattle = await this.prisma.cattle.findMany({
-          where: { active: true },
+          where: {
+            farmEntryDate: {
+              gte: startDate,
+              lte: endDate,
+            },
+            active: true,
+          },
         });
 
         const totalIllnessCases = await this.prisma.cattle.findMany({
           where: {
             healthStatus: 'INJURED',
+            farmEntryDate: {
+              gte: startDate,
+              lte: endDate,
+            },
           },
         });
 
@@ -487,6 +495,10 @@ export class AnimalService {
         const a2MilkCount = await this.prisma.milk.aggregate({
           where: {
             milkGrade: 'A2',
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
           },
           _sum: {
             morningMilk: true,
@@ -512,6 +524,73 @@ export class AnimalService {
         return topSection;
       };
 
+      function calculatePercentageChange(previous: number, current: number) {
+        if (previous === 0 && current === 0) {
+          return {
+            status: 'no_change',
+            percent: 0,
+            message: 'No change (both values are 0)',
+          };
+        }
+
+        if (previous === 0) {
+          return {
+            status: 'undefined',
+            percent: null,
+            message: 'Cannot calculate change from 0',
+          };
+        }
+
+        const change = ((current - previous) / previous) * 100;
+        const rounded = parseFloat(change.toFixed(2));
+
+        if (change > 0) {
+          return {
+            status: 'increase',
+            percent: rounded,
+            message: `Increased by ${rounded}%`,
+          };
+        } else if (change < 0) {
+          return {
+            status: 'decrease',
+            percent: Math.abs(rounded),
+            message: `Decreased by ${Math.abs(rounded)}%`,
+          };
+        } else {
+          return {
+            status: 'no_change',
+            percent: 0,
+            message: 'No change',
+          };
+        }
+      }
+
+      const settingTopSectionData = (
+        topSection: any,
+        previousTopSection: any,
+      ) => {
+        const fields = [
+          { key: 'totalMilk', index: 0 },
+          { key: 'totalCattle', index: 1 },
+          { key: 'totalIllnessCases', index: 2 },
+          { key: 'newlyAddedCattle', index: 3 },
+          { key: 'a2MilkCount', index: 4 },
+        ];
+
+        fields.forEach(({ key, index }) => {
+          const current = topSection[key];
+          const previous = previousTopSection[key];
+          const { status, percent } = calculatePercentageChange(
+            previous,
+            current,
+          );
+
+          cards[index].number = current;
+          cards[index].status = status;
+          cards[index].percentage = percent !== null ? `${percent}%` : '0%';
+        });
+      };
+
       if (date) {
         const specificStartDate = new Date(date);
         specificStartDate.setHours(0, 0, 0, 0);
@@ -527,19 +606,13 @@ export class AnimalService {
         previousEndTime.setDate(previousEndTime.getDate() - 1);
         previousEndTime.setHours(23, 59, 59, 999);
         topSection = await gettingTopData(specificStartDate, specificEndTime);
-        const previousTopSection = await gettingTopData(previousStartDate,previousEndTime)
 
-        cards[0].number=topSection.totalMilk
-        cards[1].number=topSection.totalCattle
-        cards[2].number=topSection.totalIllnessCases
-        cards[3].number=topSection.newlyAddedCattle
-        cards[4].number=topSection.a2MilkCount
+        const previousTopSection = await gettingTopData(
+          previousStartDate,
+          previousEndTime,
+        );
 
-        cards[0].status=topSection.totalMilk>previousTopSection.totalMilk?"Increase":"Decrease"
-        cards[1].status=topSection.totalCattle>previousTopSection.totalCattle?"Increase":"Decrease"
-        cards[2].status=topSection.totalIllnessCases>previousTopSection.totalIllnessCases?"Increase":"Decrease"
-        cards[3].status=topSection.newlyAddedCattle>previousTopSection.newlyAddedCattle?"Increase":"Decrease"
-        cards[4].status=topSection.a2MilkCount>previousTopSection.a2MilkCount?"Increase":"Decrease"
+        settingTopSectionData(topSection,previousTopSection)
 
         return {
           message: `Showing the dashboard data for cattle management top section based on ${date}`,
@@ -552,25 +625,96 @@ export class AnimalService {
           const lastWeek = new Date();
           lastWeek.setDate(today.getDate() - 6);
           lastWeek.setHours(0, 0, 0, 0);
+          const previousWeekStart = new Date(lastWeek);
+
+          previousWeekStart.setDate(lastWeek.getDate() - 7); // 7 days before current week start
+
+          const previousWeekEnd = new Date(lastWeek);
+          previousWeekEnd.setDate(lastWeek.getDate() - 1); // 1 day before current week start
+
+          // Optional: Set time boundaries
+          previousWeekStart.setHours(0, 0, 0, 0);
+          previousWeekEnd.setHours(23, 59, 59, 999);
+
           topSection = await gettingTopData(lastWeek, today);
+          const previousTopSectionForWeek = await gettingTopData(
+            previousWeekStart,
+            previousWeekEnd,
+          );
+
+          settingTopSectionData(topSection, previousTopSectionForWeek);
           break;
+
         case 'Month':
-          const lastMonth = new Date();
-          lastMonth.setDate(today.getMonth() - 1);
-          lastMonth.setHours(0, 0, 0, 0);
-          topSection = await gettingTopData(lastMonth, today);
+          const lastMonthStart = new Date();
+          lastMonthStart.setDate(today.getMonth() - 1);
+          lastMonthStart.setHours(0, 0, 0, 0);
+
+          const previousMonthStart = new Date(lastMonthStart);
+          previousMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+          previousMonthStart.setHours(0, 0, 0, 0);
+
+          const previousMonthEnd = new Date(lastMonthStart);
+          previousMonthEnd.setDate(previousMonthEnd.getDate() - 1); // 1 day before current month start
+          previousMonthEnd.setHours(23, 59, 59, 999);
+
+          topSection = await gettingTopData(lastMonthStart, today);
+
+          const previousTopSectionForMonth = await gettingTopData(
+            previousMonthStart,
+            previousMonthEnd,
+          );
+
+          settingTopSectionData(topSection, previousTopSectionForMonth);
+
           break;
+
         case 'Quarter':
           const lastSixMonths = new Date();
           lastSixMonths.setMonth(today.getMonth() - 6);
           lastSixMonths.setHours(0, 0, 0, 0);
+
+          const previousSixMonthsStart = new Date(lastSixMonths);
+          previousSixMonthsStart.setMonth(lastSixMonths.getMonth() - 6);
+          previousSixMonthsStart.setHours(0, 0, 0, 0);
+
+          const previousSixMonthsEnd = new Date(lastSixMonths);
+          previousSixMonthsEnd.setDate(previousSixMonthsEnd.getDate() - 1);
+          previousSixMonthsEnd.setHours(23, 59, 59, 999);
+
           topSection = await gettingTopData(lastSixMonths, today);
+
+          const previousTopSectionForSixMonths = await gettingTopData(
+            previousSixMonthsStart,
+            previousSixMonthsEnd,
+          );
+
+          settingTopSectionData(topSection, previousTopSectionForSixMonths);
+
           break;
+
         case 'Year':
           const lastYear = new Date();
           lastYear.setFullYear(lastYear.getFullYear() - 1);
           lastYear.setHours(0, 0, 0, 0);
+
+          const previousYearStart = new Date(lastYear);
+          previousYearStart.setFullYear(lastYear.getFullYear() - 1);
+          previousYearStart.setHours(0, 0, 0, 0);
+
+          const previousYearEnd = new Date(lastYear);
+          previousYearEnd.setDate(previousYearEnd.getDate() - 1);
+          previousYearEnd.setHours(23, 59, 59, 999);
+
           topSection = await gettingTopData(lastYear, today);
+
+          const previousTopSectionForYear = await gettingTopData(
+            previousYearStart,
+            previousYearEnd,
+          );
+
+          settingTopSectionData(topSection, previousTopSectionForYear);
+
           break;
         default:
           throw new BadRequestException(
@@ -580,7 +724,7 @@ export class AnimalService {
 
       return {
         message: `Showing the dashboard data for cattle management top section based on ${query}`,
-        topSection,
+        cards,
       };
     } catch (err) {
       catchBlock(err);
@@ -592,7 +736,24 @@ export class AnimalService {
     try {
       const healthRecords = await this.prisma.checkup.findMany({
         orderBy: { date: 'desc' },
+        select :{
+          id:true,
+          date:true,
+          prescription:true,
+          description:true,
+          doctorName:true,
+          doctorPhone:true,
+          cattleName:true,
+          createdAt:true,
+          updatedAt:true,
+          cattle:{
+            select:{
+              type:true
+            }
+          }
+        }
       });
+
       return { message: 'Showing all the checkup records', healthRecords };
     } catch (err) {
       catchBlock(err);
