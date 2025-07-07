@@ -704,26 +704,26 @@ export class MilkService {
             return {
               message: 'Showing all milk summary of afternoon',
               dashboardData: {
-                totalMilk: totalMilk._sum.afternoonMilk,
-                a1Milk: a1Milk._sum.afternoonMilk,
-                a2Milk: a2Milk._sum.afternoonMilk,
-                cowA1Milk: cowA1Milk._sum.afternoonMilk,
-                cowA2Milk: cowA2Milk._sum.afternoonMilk,
-                buffaloMilk: buffaloMilk._sum.afternoonMilk,
-                karampasuMilk: karampasuMilk._sum.afternoonMilk,
+                totalMilk: totalMilk._sum.afternoonMilk ?? 0,
+                a1Milk: a1Milk._sum.afternoonMilk ?? 0,
+                a2Milk: a2Milk._sum.afternoonMilk ?? 0,
+                cowA1Milk: cowA1Milk._sum.afternoonMilk ?? 0,
+                cowA2Milk: cowA2Milk._sum.afternoonMilk ?? 0,
+                buffaloMilk: buffaloMilk._sum.afternoonMilk ?? 0,
+                karampasuMilk: karampasuMilk._sum.afternoonMilk ?? 0,
               },
             };
           case 'Evening':
             return {
               message: 'Showing all milk summary of evening',
               dashboardData: {
-                totalMilk: totalMilk._sum.eveningMilk,
-                a1Milk: a1Milk._sum.eveningMilk,
-                a2Milk: a2Milk._sum.eveningMilk,
-                cowA1Milk: cowA1Milk._sum.eveningMilk,
-                cowA2Milk: cowA2Milk._sum.eveningMilk,
-                buffaloMilk: buffaloMilk._sum.eveningMilk,
-                karampasuMilk: karampasuMilk._sum.eveningMilk,
+                totalMilk: totalMilk._sum.eveningMilk ?? 0,
+                a1Milk: a1Milk._sum.eveningMilk ?? 0,
+                a2Milk: a2Milk._sum.eveningMilk ?? 0,
+                cowA1Milk: cowA1Milk._sum.eveningMilk ?? 0,
+                cowA2Milk: cowA2Milk._sum.eveningMilk ?? 0,
+                buffaloMilk: buffaloMilk._sum.eveningMilk ?? 0,
+                karampasuMilk: karampasuMilk._sum.eveningMilk ?? 0,
               },
             };
         }
