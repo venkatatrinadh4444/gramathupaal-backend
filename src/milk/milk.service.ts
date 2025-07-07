@@ -395,12 +395,69 @@ export class MilkService {
   //Fetching the data for milk dashboard
   async dashboardData(session: string, date: string) {
     try {
-      if (session === 'Today') {
-        const startTime = new Date();
-        startTime.setHours(0, 0, 0, 0);
-        const endTime = new Date(startTime);
-        endTime.setHours(23, 59, 59, 999);
+      const cardsMilk = [
+        {
+          number: "",
+          title: "Total Milk",
+          des: "Total milk collected across animals",
+          percentage: "",
+          status: '',
+        },
+        {
+          number: "",
+          title: "A1 Milk",
+          des: "Quantity of milk classified as A1",
+          percentage: "",
+          status: '',
+    
+        },
+        {
+          number: "",
+          title: "A2 Milk",
+          des: "Quantity of milk classified as A2",
+          percentage: "",
+          status: '',
+        },
+        {
+          number: "",
+          title: "Cow A1 Milk",
+          des: "Milk collected from one animals",
+          percentage: "",
+          status: '',
+        },
+        {
+          number: "",
+          title: "Cow A2 Milk",
+          des: "Milk collected from one animals",
+          percentage: "",
+          status: '',
+        },
+        {
+          number: "",
+          title: "A2 Milk",
+          des: "Quantity of milk classified as A2",
+          percentage: "",
+          status: '',
+        },
+        {
+          number: "",
+          title: "Buffalo Milk",
+          des: "The total buffalo milk production",
+          percentage: "",
+          status: '',
+    
+        },
+        {
+          number: "",
+          title: "Karampasu Milk",
+          des: "The total karampasu milk production",
+          percentage: "",
+          status: '',
+        },
+      ];
 
+
+      const fetchingMilkData=async (startTime:any,endTime:any)=> {
         const totalMilk = await this.prisma.milk.aggregate({
           where: {
             date: {
@@ -557,10 +614,68 @@ export class MilkService {
             Number(karampasuMilk._sum.afternoonMilk) +
             Number(karampasuMilk._sum.eveningMilk),
         };
+        return dashboardData;
+      }
+
+      function calculatePercentageChange(previous: number, current: number) {
+        if (previous === 0 && current === 0) {
+          return {
+            status: 'no_change',
+            percent: 0,
+            message: 'No change (both values are 0)',
+          };
+        }
+
+        if (previous === 0) {
+          return {
+            status: 'increase',
+            percent: 100,
+            message: 'Cannot calculate change from 0',
+          };
+        }
+
+        const change = ((current - previous) / previous) * 100;
+        const rounded = parseFloat(change.toFixed(2));
+
+        if (change > 0) {
+          return {
+            status: 'increase',
+            percent: rounded,
+            message: `Increased by ${rounded}%`,
+          };
+        } else if (change < 0) {
+          return {
+            status: 'decrease',
+            percent: Math.abs(rounded),
+            message: `Decreased by ${Math.abs(rounded)}%`,
+          };
+        } else {
+          return {
+            status: 'no_change',
+            percent: 0,
+            message: 'No change',
+          };
+        }
+      }
+
+      if (session === 'Today') {
+        const startTime = new Date();
+        startTime.setHours(0, 0, 0, 0);
+        const endTime = new Date(startTime);
+        endTime.setHours(23, 59, 59, 999);
+
+        const previousStartTime = new Date(startTime)
+        previousStartTime.setDate(startTime.getDate() - 1)
+        previousStartTime.setHours(0,0,0,0)
+        const previousEndTime = new Date(previousStartTime)
+        previousEndTime.setHours(23, 59, 59, 999)
+
+        const currentData = await fetchingMilkData(startTime,endTime)
+
+        const previousData = await fetchingMilkData(previousStartTime,previousEndTime)
 
         return {
-          message: 'Showing all the dashboard data for Today',
-          dashboardData,
+          message: 'Showing all the dashboard data for Today'
         };
       }
 

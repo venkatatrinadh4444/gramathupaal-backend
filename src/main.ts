@@ -9,7 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser())
   app.enableCors({
-    origin:["https://gramathupaal.vercel.app","http://localhost:3000"],
+    origin:["https://gramathupaal.vercel.app","http://localhost:3000","https://gramathupal.vercel.app"],
     credentials:true
   })
   const config=new DocumentBuilder()
