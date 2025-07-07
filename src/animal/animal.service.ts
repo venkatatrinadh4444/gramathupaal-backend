@@ -535,8 +535,8 @@ export class AnimalService {
 
         if (previous === 0) {
           return {
-            status: 'undefined',
-            percent: null,
+            status: 'increase',
+            percent: 100,
             message: 'Cannot calculate change from 0',
           };
         }
@@ -818,7 +818,7 @@ export class AnimalService {
           break;
         case 'Month':
           const lastMonth = new Date();
-          lastMonth.setDate(endDate.getMonth() - 1);
+          lastMonth.setMonth(endDate.getMonth() - 1);
           lastMonth.setHours(0, 0, 0, 0);
           totalCheckupCounts = await getCheckupCount(lastMonth, endDate);
           break;
@@ -880,7 +880,7 @@ export class AnimalService {
           break;
         case 'Month':
           const lastMonth = new Date();
-          lastMonth.setDate(endDate.getMonth() - 1);
+          lastMonth.setMonth(endDate.getMonth() - 1);
           lastMonth.setHours(0, 0, 0, 0);
           totalFeedRecords = await getFeedStockRecords(lastMonth, endDate);
           break;
