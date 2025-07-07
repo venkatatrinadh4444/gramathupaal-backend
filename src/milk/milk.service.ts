@@ -6,7 +6,7 @@ import {
 import { AddMilkRecordDto } from './dto/add-milk-record.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { catchBlock } from '../common/catch-block';
-import { CattleType } from '@prisma/client';
+import { CattleType, SelectedMilkGrade } from '@prisma/client';
 
 @Injectable()
 export class MilkService {
@@ -451,7 +451,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'OneCowA1',
+              milkGrade: SelectedMilkGrade.OneCowA1,
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -471,7 +471,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'OneCowA2',
+              milkGrade: SelectedMilkGrade.OneCowA2,
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -618,7 +618,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'OneCowA1',
+              milkGrade: SelectedMilkGrade.OneCowA1,
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -638,7 +638,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'OneCowA2',
+              milkGrade: SelectedMilkGrade.OneCowA2,
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -783,7 +783,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'OneCowA1',
+              milkGrade: SelectedMilkGrade.OneCowA1,
               date: {
                 gte: start,
                 lte: end,
@@ -803,7 +803,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'OneCowA2',
+              milkGrade: SelectedMilkGrade.OneCowA2,
               date: {
                 gte: start,
                 lte: end,
