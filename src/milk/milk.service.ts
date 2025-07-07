@@ -451,7 +451,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'A1',
+              milkGrade: 'OneCowA1',
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -471,7 +471,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'A2',
+              milkGrade: 'OneCowA2',
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -618,7 +618,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'A1',
+              milkGrade: 'OneCowA1',
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -638,7 +638,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'A2',
+              milkGrade: 'OneCowA2',
               date: {
                 gte: startTime,
                 lte: endTime,
@@ -731,6 +731,7 @@ export class MilkService {
 
       if (date) {
         const start = new Date(date);
+        start.setHours(0,0,0,0)
         const end = new Date(date);
         end.setUTCHours(23, 59, 59, 999);
 
@@ -782,7 +783,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'A1',
+              milkGrade: 'OneCowA1',
               date: {
                 gte: start,
                 lte: end,
@@ -802,7 +803,7 @@ export class MilkService {
               cattle: {
                 type: 'COW',
               },
-              milkGrade: 'A2',
+              milkGrade: 'OneCowA2',
               date: {
                 gte: start,
                 lte: end,

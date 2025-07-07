@@ -14,7 +14,7 @@ export class AddMilkRecordDto {
    @Matches(/^[A-Za-z]+-\d+$/,{message: 'cattleId must follow format Name-Number (e.g., Kaveri-01)'})
    cattleId:string
 
-   @ApiProperty({example:'A1',description:'Milk grade must includes (A1,A2,A3)'})
+   @ApiProperty({example:'A1',description:'Milk grade must includes (A1,A2,OneCowA1,OneCowA2)'})
    @IsNotEmpty()
    @IsEnum(SelectedMilkGrade)
    milkGrade:SelectedMilkGrade

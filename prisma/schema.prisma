@@ -135,7 +135,8 @@ enum SelectedSession {
 enum SelectedMilkGrade {
   A1
   A2
-  A3
+  OneCowA2
+  OneCowA1
 }
 
 model Milk {
