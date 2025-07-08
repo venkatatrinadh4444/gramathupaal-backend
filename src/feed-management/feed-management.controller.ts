@@ -10,6 +10,7 @@ import {
   BadRequestException,
   Delete,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -20,6 +21,7 @@ import {
   ApiTags,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { FeedManagementService } from './feed-management.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -213,4 +215,38 @@ export class FeedManagementController {
   async deleteParticularFeedRecord(@Param('id', ParseIntPipe) id: number) {
     return this.feedManagementService.deleteParticularFeedRecord(id);
   }
+
+   // Get milk records by a specific date range
+    @UseGuards(JwtAuthGuard)
+    @Get('date-specific-milk-records/:cattleName')
+    @ApiOperation({ summary: 'Fetching all milk records based on the date' })
+    @ApiOkResponse({ description: 'Showing the data of milk records' })
+    @ApiUnauthorizedResponse({
+      description: 'Unauthorized access - JWT token required',
+    })
+    @ApiParam({
+      name: 'cattleName',
+      required: true,
+      example: 'Kaveri-001',
+      description: 'Enter a valid cattle name',
+    })
+    @ApiQuery({
+      name: 'fromDate',
+      required: true,
+      example: '2025-06-12',
+      description: 'Required date filter in YYYY-MM-DD format',
+    })
+    @ApiQuery({
+      name: 'toDate',
+      required: true,
+      example: '2025-06-12',
+      description: 'Required date filter in YYYY-MM-DD format',
+    })
+    async gettingDateBasedMilkRecords(
+      @Param('cattleName') cattleName: string,
+      @Query('fromDate') fromDate: string,
+      @Query('toDate') toDate: string
+    ) {
+      return this.feedManagementService.getFeedRecordsForSpecificDate(cattleName, fromDate,toDate);
+    }
 }

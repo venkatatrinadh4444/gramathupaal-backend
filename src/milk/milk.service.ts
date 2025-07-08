@@ -393,7 +393,7 @@ export class MilkService {
   }
 
   //Fetching the data for milk dashboard
-  async dashboardData(session: string, date: string) {
+  async dashboardData(session: string, fromDate: string , toDate:string) {
     try {
       const cardsMilk = [
         {
@@ -792,16 +792,15 @@ export class MilkService {
         return {message:currentData?.message, cardsMilk}
       }
 
-      if (date) {
-        const start = new Date(date);
+      if (fromDate && toDate) {
+        const start = new Date(fromDate);
         start.setHours(0,0,0,0)
-        const end = new Date(date);
+        const end = new Date(toDate);
         end.setHours(23, 59, 59, 999);
 
-        const previousStartTime = new Date(date)
-        previousStartTime.setDate(previousStartTime.getDate() - 1)
+        const previousStartTime = new Date(start)
         previousStartTime.setHours(0,0,0,0)
-        const previousEndTime = new Date(previousStartTime)
+        const previousEndTime = new Date(end)
         previousEndTime.setHours(23, 59, 59, 999)
 
         const currentData = await fetchingMilkData(start,end)
@@ -811,7 +810,7 @@ export class MilkService {
         settingMilkSectionData(currentData,previousData)
 
         return {
-          message: `Showing all the dashboard data based on date ${date}`,
+          message: `Showing all the dashboard data based on date ${fromDate} to ${toDate}`,
           cardsMilk
         };
       }
@@ -909,6 +908,29 @@ export class MilkService {
       };
     } catch (err) {
       catchBlock(err);
+    }
+  }
+
+  //Filter milk records by a specific date
+  async getMilkRecordsForSpecificDate(cattleName:string,fromDate:string,toDate:string) {
+    try {
+      const startTime = new Date(fromDate)
+      startTime.setHours(0,0,0,0)
+      const endTime = new Date(toDate)
+      endTime.setHours(23,59,59,999)
+
+      const allRecords = await this.prisma.milk.findMany({
+        where: { cattleId: cattleName , date : {
+          gte:startTime,
+          lte:endTime
+        }},
+        orderBy: { date: 'desc' },
+      });
+
+      return {message:`Showing all milk records for ${fromDate} to ${toDate}`,allRecords}
+
+    } catch (err) {
+      catchBlock(err)
     }
   }
 }

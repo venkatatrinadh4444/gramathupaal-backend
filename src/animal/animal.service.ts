@@ -403,7 +403,7 @@ export class AnimalService {
   }
 
   //Fetching cattle management data for top section
-  async getDataForDashboardTopSection(query: string, date: string) {
+  async getDataForDashboardTopSection(query: string, fromDate: string , toDate:string) {
     try {
       const today = new Date();
       today.setHours(23, 59, 59, 999);
@@ -591,19 +591,17 @@ export class AnimalService {
         });
       };
 
-      if (date) {
-        const specificStartDate = new Date(date);
+      if (fromDate && toDate) {
+        const specificStartDate = new Date(fromDate);
         specificStartDate.setHours(0, 0, 0, 0);
-        const specificEndTime = new Date(date);
+        const specificEndTime = new Date(toDate);
         specificEndTime.setHours(23, 59, 59, 999);
 
         // ✅ Previous day start and end
         const previousStartDate = new Date(specificStartDate);
-        previousStartDate.setDate(previousStartDate.getDate() - 1);
         previousStartDate.setHours(0, 0, 0, 0);
 
-        const previousEndTime = new Date(specificStartDate);
-        previousEndTime.setDate(previousEndTime.getDate() - 1);
+        const previousEndTime = new Date(specificEndTime);
         previousEndTime.setHours(23, 59, 59, 999);
         topSection = await gettingTopData(specificStartDate, specificEndTime);
 
@@ -615,7 +613,7 @@ export class AnimalService {
         settingTopSectionData(topSection,previousTopSection)
 
         return {
-          message: `Showing the dashboard data for cattle management top section based on ${date}`,
+          message: `Showing the dashboard data for cattle management top section based on ${fromDate} to ${toDate}`,
           cards,
         };
       }

@@ -330,22 +330,30 @@ export class AnimalController {
     example: 'Week',
   })
   @ApiQuery({
-    name: 'date',
+    name: 'fromDate',
     required: false,
     description:
-      'Specific date to filter the top section data (optional if query is provided)',
+      'Specific start date to filter the top section data (optional if query is provided)',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description:
+      'Specific end date to filter the top section data (optional if query is provided)',
     example: '2025-06-12',
   })
   async gettingDashboardTopSection(
     @Query('query') query: string,
-    @Query('date') date: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
   ) {
-    if (!query && !date) {
+    if (!query && !(fromDate && toDate)) {
       throw new BadRequestException(
         'At least one query parameter (query or date) must be provided.',
       );
     }
-    return this.animalServie.getDataForDashboardTopSection(query, date);
+    return this.animalServie.getDataForDashboardTopSection(query, fromDate,toDate);
   }
 
    //Fetching all the recent health checkup reocords

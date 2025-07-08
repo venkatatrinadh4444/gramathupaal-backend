@@ -229,16 +229,57 @@ export class MilkController {
     description: 'Optional session filter (e.g., Today,MORNING, AFTERNOON, EVENING)',
   })
   @ApiQuery({
-    name: 'date',
+    name: 'fromDate',
     required: false,
     example: '2025-06-12',
-    description: 'Optional date filter in YYYY-MM-DD format',
+    description: 'Optional start date filter in YYYY-MM-DD format',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    example: '2025-06-12',
+    description: 'Optional end date filter in YYYY-MM-DD format',
   })
   async gettingMilkDashboardData(
     @Query('session') session: string,
-    @Query('date') date: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string
   ) {
-    return this.milkService.dashboardData(session, date);
+    return this.milkService.dashboardData(session, fromDate,toDate);
+  }
+
+  // Get milk records by a specific date range
+  @UseGuards(JwtAuthGuard)
+  @Get('date-specific-milk-records/:cattleName')
+  @ApiOperation({ summary: 'Fetching all milk records based on the date' })
+  @ApiOkResponse({ description: 'Showing the data of milk records' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access - JWT token required',
+  })
+  @ApiParam({
+    name: 'cattleName',
+    required: true,
+    example: 'Kaveri-001',
+    description: 'Enter a valid cattle name',
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  async gettingDateBasedMilkRecords(
+    @Param('cattleName') cattleName: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string
+  ) {
+    return this.milkService.getMilkRecordsForSpecificDate(cattleName, fromDate,toDate);
   }
 
   //Fetch monthly wise milk production data

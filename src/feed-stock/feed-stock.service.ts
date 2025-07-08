@@ -175,7 +175,8 @@ export class FeedStockService {
             select:{
               name:true,
               quantity:true,
-              unit:true
+              unit:true,
+              notes:true
             }
           }
         },orderBy:{updatedAt:'desc'}})
