@@ -168,6 +168,7 @@ export class FeedManagementService {
           feedName: true,
           session: true,
           date: true,
+          unit:true,
           quantity: true,
         },
       });
