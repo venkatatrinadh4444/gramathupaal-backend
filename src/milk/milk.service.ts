@@ -393,64 +393,61 @@ export class MilkService {
   }
 
   //Fetching the data for milk dashboard
-  async dashboardData(session: string, fromDate: string , toDate:string) {
+  async dashboardData(session: string, fromDate: string, toDate: string) {
     try {
       const cardsMilk = [
         {
-          number: "",
-          title: "Total Milk",
-          des: "Total milk collected across animals",
-          percentage: "",
+          number: '',
+          title: 'Total Milk',
+          des: 'Total milk collected across animals',
+          percentage: '',
           status: '',
         },
         {
-          number: "",
-          title: "A1 Milk",
-          des: "Quantity of milk classified as A1",
-          percentage: "",
-          status: '',
-    
-        },
-        {
-          number: "",
-          title: "A2 Milk",
-          des: "Quantity of milk classified as A2",
-          percentage: "",
+          number: '',
+          title: 'A1 Milk',
+          des: 'Quantity of milk classified as A1',
+          percentage: '',
           status: '',
         },
         {
-          number: "",
-          title: "Cow A1 Milk",
-          des: "Milk collected from one animals",
-          percentage: "",
+          number: '',
+          title: 'A2 Milk',
+          des: 'Quantity of milk classified as A2',
+          percentage: '',
           status: '',
         },
         {
-          number: "",
-          title: "Cow A2 Milk",
-          des: "Milk collected from one animals",
-          percentage: "",
+          number: '',
+          title: 'Cow A1 Milk',
+          des: 'Milk collected from one animals',
+          percentage: '',
           status: '',
         },
         {
-          number: "",
-          title: "Buffalo Milk",
-          des: "The total buffalo milk production",
-          percentage: "",
+          number: '',
+          title: 'Cow A2 Milk',
+          des: 'Milk collected from one animals',
+          percentage: '',
           status: '',
-    
         },
         {
-          number: "",
-          title: "Karampasu Milk",
-          des: "The total karampasu milk production",
-          percentage: "",
+          number: '',
+          title: 'Buffalo Milk',
+          des: 'The total buffalo milk production',
+          percentage: '',
+          status: '',
+        },
+        {
+          number: '',
+          title: 'Karampasu Milk',
+          des: 'The total karampasu milk production',
+          percentage: '',
           status: '',
         },
       ];
 
-
-      const fetchingMilkData=async (startTime:any,endTime:any)=> {
+      const fetchingMilkData = async (startTime: any, endTime: any) => {
         const totalMilk = await this.prisma.milk.aggregate({
           where: {
             date: {
@@ -608,7 +605,7 @@ export class MilkService {
             Number(karampasuMilk._sum.eveningMilk),
         };
         return dashboardData;
-      }
+      };
 
       function calculatePercentageChange(previous: number, current: number) {
         if (previous === 0 && current === 0) {
@@ -653,7 +650,7 @@ export class MilkService {
 
       const settingMilkSectionData = (
         currentMilkData: any,
-        previousMilkData: any
+        previousMilkData: any,
       ) => {
         const fields = [
           { key: 'totalMilk', index: 0 },
@@ -664,18 +661,20 @@ export class MilkService {
           { key: 'buffaloMilk', index: 5 },
           { key: 'karampasuMilk', index: 6 },
         ];
-      
+
         fields.forEach(({ key, index }) => {
           const current = currentMilkData[key];
           const previous = previousMilkData[key];
-          const { status, percent } = calculatePercentageChange(previous, current);
-      
+          const { status, percent } = calculatePercentageChange(
+            previous,
+            current,
+          );
+
           cardsMilk[index].number = current.toFixed(2); // Optional: format milk to 2 decimal places
           cardsMilk[index].status = status;
           cardsMilk[index].percentage = percent !== null ? `${percent}%` : '0%';
         });
       };
-      
 
       if (session === 'Today') {
         const startTime = new Date();
@@ -683,20 +682,24 @@ export class MilkService {
         const endTime = new Date(startTime);
         endTime.setHours(23, 59, 59, 999);
 
-        const previousStartTime = new Date(startTime)
-        previousStartTime.setDate(startTime.getDate() - 1)
-        previousStartTime.setHours(0,0,0,0)
-        const previousEndTime = new Date(previousStartTime)
-        previousEndTime.setHours(23, 59, 59, 999)
+        const previousStartTime = new Date(startTime);
+        previousStartTime.setDate(startTime.getDate() - 1);
+        previousStartTime.setHours(0, 0, 0, 0);
+        const previousEndTime = new Date(previousStartTime);
+        previousEndTime.setHours(23, 59, 59, 999);
 
-        const currentData = await fetchingMilkData(startTime,endTime)
+        const currentData = await fetchingMilkData(startTime, endTime);
 
-        const previousData = await fetchingMilkData(previousStartTime,previousEndTime)
+        const previousData = await fetchingMilkData(
+          previousStartTime,
+          previousEndTime,
+        );
 
-        settingMilkSectionData(currentData,previousData)
+        settingMilkSectionData(currentData, previousData);
 
         return {
-          message: 'Showing all the dashboard data for Today',cardsMilk
+          message: 'Showing all the dashboard data for Today',
+          cardsMilk,
         };
       }
 
@@ -706,32 +709,60 @@ export class MilkService {
         const endTime = new Date(startTime);
         endTime.setHours(23, 59, 59, 999);
 
-        const previousStartTime = new Date(startTime)
-        previousStartTime.setDate(startTime.getDate() - 1)
-        previousStartTime.setHours(0,0,0,0)
-        const previousEndTime = new Date(previousStartTime)
-        previousEndTime.setHours(23, 59, 59, 999)
+        const previousStartTime = new Date(startTime);
+        previousStartTime.setDate(startTime.getDate() - 1);
+        previousStartTime.setHours(0, 0, 0, 0);
+        const previousEndTime = new Date(previousStartTime);
+        previousEndTime.setHours(23, 59, 59, 999);
 
-
-        const fetchSessionMilkData = async (prisma: any, session: 'MORNING' | 'AFTERNOON' | 'EVENING' , startTime : any,endTime : any) => {
-          
-        
+        const fetchSessionMilkData = async (
+          prisma: any,
+          session: 'MORNING' | 'AFTERNOON' | 'EVENING',
+          startTime: any,
+          endTime: any,
+        ) => {
           const key = session.toLowerCase() + 'Milk';
-        
+
           const getValue = (res: any) => Number(res._sum[key] ?? 0);
-        
-          const [totalMilk, a1Milk, a2Milk, cowA1Milk, cowA2Milk, buffaloMilk, karampasuMilk] = await Promise.all([
+
+          const [
+            totalMilk,
+            a1Milk,
+            a2Milk,
+            cowA1Milk,
+            cowA2Milk,
+            buffaloMilk,
+            karampasuMilk,
+          ] = await Promise.all([
             prisma.milk.aggregate({
               where: { date: { gte: startTime, lte: endTime } },
-              _sum: { morningMilk: true, afternoonMilk: true, eveningMilk: true },
+              _sum: {
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+              },
             }),
             prisma.milk.aggregate({
-              where: { milkGrade: 'A1', date: { gte: startTime, lte: endTime } },
-              _sum: { morningMilk: true, afternoonMilk: true, eveningMilk: true },
+              where: {
+                milkGrade: 'A1',
+                date: { gte: startTime, lte: endTime },
+              },
+              _sum: {
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+              },
             }),
             prisma.milk.aggregate({
-              where: { milkGrade: 'A2', date: { gte: startTime, lte: endTime } },
-              _sum: { morningMilk: true, afternoonMilk: true, eveningMilk: true },
+              where: {
+                milkGrade: 'A2',
+                date: { gte: startTime, lte: endTime },
+              },
+              _sum: {
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+              },
             }),
             prisma.milk.aggregate({
               where: {
@@ -741,7 +772,11 @@ export class MilkService {
                   { date: { gte: startTime, lte: endTime } },
                 ],
               },
-              _sum: { morningMilk: true, afternoonMilk: true, eveningMilk: true },
+              _sum: {
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+              },
             }),
             prisma.milk.aggregate({
               where: {
@@ -751,24 +786,36 @@ export class MilkService {
                   { date: { gte: startTime, lte: endTime } },
                 ],
               },
-              _sum: { morningMilk: true, afternoonMilk: true, eveningMilk: true },
+              _sum: {
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+              },
             }),
             prisma.milk.aggregate({
               where: {
                 cattle: { type: 'BUFFALO' },
                 date: { gte: startTime, lte: endTime },
               },
-              _sum: { morningMilk: true, afternoonMilk: true, eveningMilk: true },
+              _sum: {
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+              },
             }),
             prisma.milk.aggregate({
               where: {
                 cattle: { breed: 'KARAMPASU' },
                 date: { gte: startTime, lte: endTime },
               },
-              _sum: { morningMilk: true, afternoonMilk: true, eveningMilk: true },
+              _sum: {
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+              },
             }),
           ]);
-        
+
           return {
             message: `Showing all milk summary of ${session.toLowerCase()}`,
             dashboardData: {
@@ -783,35 +830,62 @@ export class MilkService {
           };
         };
 
-        const currentData = await fetchSessionMilkData(this.prisma,session as SelectedSession,startTime,endTime)
+        const currentData = await fetchSessionMilkData(
+          this.prisma,
+          session as SelectedSession,
+          startTime,
+          endTime,
+        );
 
-        const previousData = await fetchSessionMilkData(this.prisma,session as SelectedSession, previousStartTime,previousEndTime)
+        const previousData = await fetchSessionMilkData(
+          this.prisma,
+          session as SelectedSession,
+          previousStartTime,
+          previousEndTime,
+        );
 
-        settingMilkSectionData(currentData?.dashboardData,previousData?.dashboardData)
+        settingMilkSectionData(
+          currentData?.dashboardData,
+          previousData?.dashboardData,
+        );
 
-        return {message:currentData?.message, cardsMilk}
+        return { message: currentData?.message, cardsMilk };
       }
 
       if (fromDate && toDate) {
         const start = new Date(fromDate);
-        start.setHours(0,0,0,0)
+        start.setHours(0, 0, 0, 0);
+
         const end = new Date(toDate);
         end.setHours(23, 59, 59, 999);
 
-        const previousStartTime = new Date(start)
-        previousStartTime.setHours(0,0,0,0)
-        const previousEndTime = new Date(end)
-        previousEndTime.setHours(23, 59, 59, 999)
+        // Calculate number of days in the current range
+        const diffInDays = Math.ceil(
+          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+        );
 
-        const currentData = await fetchingMilkData(start,end)
+        // Previous range ends the day before the current start
+        const previousEndTime = new Date(start);
+        previousEndTime.setDate(start.getDate() - 1);
+        previousEndTime.setHours(23, 59, 59, 999);
 
-        const previousData = await fetchingMilkData(previousStartTime,previousEndTime)
+        // Previous range starts `diffInDays` before the previousEndTime
+        const previousStartTime = new Date(previousEndTime);
+        previousStartTime.setDate(previousEndTime.getDate() - (diffInDays - 1));
+        previousStartTime.setHours(0, 0, 0, 0);
 
-        settingMilkSectionData(currentData,previousData)
+        const currentData = await fetchingMilkData(start, end);
+
+        const previousData = await fetchingMilkData(
+          previousStartTime,
+          previousEndTime,
+        );
+
+        settingMilkSectionData(currentData, previousData);
 
         return {
           message: `Showing all the dashboard data based on date ${fromDate} to ${toDate}`,
-          cardsMilk
+          cardsMilk,
         };
       }
 
@@ -912,25 +986,34 @@ export class MilkService {
   }
 
   //Filter milk records by a specific date
-  async getMilkRecordsForSpecificDate(cattleName:string,fromDate:string,toDate:string) {
+  async getMilkRecordsForSpecificDate(
+    cattleName: string,
+    fromDate: string,
+    toDate: string,
+  ) {
     try {
-      const startTime = new Date(fromDate)
-      startTime.setHours(0,0,0,0)
-      const endTime = new Date(toDate)
-      endTime.setHours(23,59,59,999)
+      const startTime = new Date(fromDate);
+      startTime.setHours(0, 0, 0, 0);
+      const endTime = new Date(toDate);
+      endTime.setHours(23, 59, 59, 999);
 
       const allRecords = await this.prisma.milk.findMany({
-        where: { cattleId: cattleName , date : {
-          gte:startTime,
-          lte:endTime
-        }},
+        where: {
+          cattleId: cattleName,
+          date: {
+            gte: startTime,
+            lte: endTime,
+          },
+        },
         orderBy: { date: 'desc' },
       });
 
-      return {message:`Showing all milk records for ${fromDate} to ${toDate}`,allRecords}
-
+      return {
+        message: `Showing all milk records for ${fromDate} to ${toDate}`,
+        allRecords,
+      };
     } catch (err) {
-      catchBlock(err)
+      catchBlock(err);
     }
   }
 }

@@ -8,6 +8,7 @@ import {
   Put,
   ParseIntPipe,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { CheckupService } from './checkup.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -20,6 +21,9 @@ import {
   ApiResponse,
   ApiTags,
   ApiParam,
+  ApiOkResponse,
+  ApiUnauthorizedResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 @ApiTags('Doctor Checkups')
@@ -29,8 +33,8 @@ export class CheckupController {
   constructor(private readonly checkupService: CheckupService) {}
 
   //Add new doctor checkup
-  @Post('add-new')
   @UseGuards(JwtAuthGuard)
+  @Post('add-new')
   @ApiOperation({ summary: 'Add a new checkup record for a cattle' })
   @ApiResponse({
     status: 201,
@@ -43,8 +47,8 @@ export class CheckupController {
   }
 
   //Fetch all the checkup records
-  @Get('get-all-records')
   @UseGuards(JwtAuthGuard)
+  @Get('get-all-records')
   @ApiOperation({ summary: 'Fetch all checkup records' })
   @ApiResponse({
     status: 200,
@@ -55,8 +59,8 @@ export class CheckupController {
   }
 
   //Fetch specific animal checkup records
-  @Get('specific-animal-records/:cattleName')
   @UseGuards(JwtAuthGuard)
+  @Get('specific-animal-records/:cattleName')
   @ApiOperation({ summary: 'Fetch checkup records of a specific cattle' })
   @ApiParam({
     name: 'cattleName',
@@ -74,8 +78,8 @@ export class CheckupController {
   }
 
   //Update specific checkup record
-  @Put('update-specific-record/:id')
   @UseGuards(JwtAuthGuard)
+  @Put('update-specific-record/:id')
   @ApiOperation({ summary: 'Update a specific checkup record by ID' })
   @ApiParam({
     name: 'id',
@@ -94,10 +98,10 @@ export class CheckupController {
   ) {
     return this.checkupService.editParticularCheckupRecord(id, editCheckupDto);
   }
- 
+
   //Delete specific checkup record
-  @Delete('delete-specific-record/:id')
   @UseGuards(JwtAuthGuard)
+  @Delete('delete-specific-record/:id')
   @ApiOperation({ summary: 'Delete a specific checkup record by ID' })
   @ApiParam({
     name: 'id',
@@ -112,4 +116,65 @@ export class CheckupController {
   async deleteSpecificRecord(@Param('id', ParseIntPipe) id: number) {
     return this.checkupService.deleteParticularCheckupRecord(id);
   }
+
+  //Getting the checkup dashboard data
+  @UseGuards(JwtAuthGuard)
+  @Get('checkup-dashboard')
+  @ApiOperation({ summary: 'Fetching checkup dashboard data' })
+  @ApiOkResponse({ description: 'Showing the data of checkup dashboard' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access - JWT token required',
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  async gettingDateBasedMilkRecords(
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    return this.checkupService.checkupDashboard(fromDate, toDate);
+  }
+
+   // Get checkup records by a specific date range
+   @UseGuards(JwtAuthGuard)
+   @Get('date-specific-checkup-records/:cattleName')
+   @ApiOperation({ summary: 'Fetching all checkup records based on the date' })
+   @ApiOkResponse({ description: 'Showing the data of checkup records' })
+   @ApiUnauthorizedResponse({
+     description: 'Unauthorized access - JWT token required',
+   })
+   @ApiParam({
+     name: 'cattleName',
+     required: true,
+     example: 'Kaveri-001',
+     description: 'Enter a valid cattle name',
+   })
+   @ApiQuery({
+     name: 'fromDate',
+     required: true,
+     example: '2025-06-12',
+     description: 'Required date filter in YYYY-MM-DD format',
+   })
+   @ApiQuery({
+     name: 'toDate',
+     required: true,
+     example: '2025-06-12',
+     description: 'Required date filter in YYYY-MM-DD format',
+   })
+   async gettingDateBasedCheckupRecords(
+     @Param('cattleName') cattleName: string,
+     @Query('fromDate') fromDate: string,
+     @Query('toDate') toDate: string
+   ) {
+     return this.checkupService.getCheckupRecordsForSpecificDate(cattleName, fromDate,toDate);
+   }
 }

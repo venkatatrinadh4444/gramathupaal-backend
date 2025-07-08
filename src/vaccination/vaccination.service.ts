@@ -178,4 +178,36 @@ export class VaccinationService {
       catchBlock(err);
     }
   }
+
+  //Getting the specific records based date range
+  async getVaccinationRecordsForSpecificDate(
+    cattleName: string,
+    fromDate: string,
+    toDate: string,
+  ) {
+    try {
+      const startTime = new Date(fromDate);
+      startTime.setHours(0, 0, 0, 0);
+      const endTime = new Date(toDate);
+      endTime.setHours(23, 59, 59, 999);
+
+      const allRecords = await this.prisma.vaccination.findMany({
+        where: {
+          cattleName: cattleName,
+          date: {
+            gte: startTime,
+            lte: endTime,
+          },
+        },
+        orderBy: { date: 'desc' },
+      });
+
+      return {
+        message: `Showing all milk records for ${fromDate} to ${toDate}`,
+        allRecords,
+      };
+    } catch (err) {
+      catchBlock(err);
+    }
+  }
 }

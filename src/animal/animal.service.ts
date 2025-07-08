@@ -403,7 +403,11 @@ export class AnimalService {
   }
 
   //Fetching cattle management data for top section
-  async getDataForDashboardTopSection(query: string, fromDate: string , toDate:string) {
+  async getDataForDashboardTopSection(
+    query: string,
+    fromDate: string,
+    toDate: string,
+  ) {
     try {
       const today = new Date();
       today.setHours(23, 59, 59, 999);
@@ -594,23 +598,38 @@ export class AnimalService {
       if (fromDate && toDate) {
         const specificStartDate = new Date(fromDate);
         specificStartDate.setHours(0, 0, 0, 0);
+
         const specificEndTime = new Date(toDate);
         specificEndTime.setHours(23, 59, 59, 999);
 
-        // ✅ Previous day start and end
-        const previousStartDate = new Date(specificStartDate);
+        // ✅ Calculate the number of days in the selected range
+        const durationInDays = Math.ceil(
+          (specificEndTime.getTime() - specificStartDate.getTime()) /
+            (1000 * 60 * 60 * 24),
+        );
+
+        // ✅ Calculate previous range
+        const previousEndTime = new Date(specificStartDate);
+        previousEndTime.setDate(specificStartDate.getDate() - 1);
+        previousEndTime.setHours(23, 59, 59, 999);
+
+        const previousStartDate = new Date(previousEndTime);
+        previousStartDate.setDate(
+          previousEndTime.getDate() - (durationInDays - 1),
+        );
         previousStartDate.setHours(0, 0, 0, 0);
 
-        const previousEndTime = new Date(specificEndTime);
-        previousEndTime.setHours(23, 59, 59, 999);
-        topSection = await gettingTopData(specificStartDate, specificEndTime);
-
+        // 🔄 Get top section data
+        const topSection = await gettingTopData(
+          specificStartDate,
+          specificEndTime,
+        );
         const previousTopSection = await gettingTopData(
           previousStartDate,
           previousEndTime,
         );
 
-        settingTopSectionData(topSection,previousTopSection)
+        settingTopSectionData(topSection, previousTopSection);
 
         return {
           message: `Showing the dashboard data for cattle management top section based on ${fromDate} to ${toDate}`,
@@ -734,22 +753,22 @@ export class AnimalService {
     try {
       const healthRecords = await this.prisma.checkup.findMany({
         orderBy: { date: 'desc' },
-        select :{
-          id:true,
-          date:true,
-          prescription:true,
-          description:true,
-          doctorName:true,
-          doctorPhone:true,
-          cattleName:true,
-          createdAt:true,
-          updatedAt:true,
-          cattle:{
-            select:{
-              type:true
-            }
-          }
-        }
+        select: {
+          id: true,
+          date: true,
+          prescription: true,
+          description: true,
+          doctorName: true,
+          doctorPhone: true,
+          cattleName: true,
+          createdAt: true,
+          updatedAt: true,
+          cattle: {
+            select: {
+              type: true,
+            },
+          },
+        },
       });
 
       return { message: 'Showing all the checkup records', healthRecords };

@@ -9,6 +9,7 @@ import {
   Put,
   UseGuards,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { VaccinationService } from './vaccination.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -24,6 +25,7 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiNotFoundResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 @ApiTags('Vaccination')
@@ -164,4 +166,38 @@ export class VaccinationController {
   async deleteVaccinationRecord(@Param('id', ParseIntPipe) id: number) {
     return this.vaccinationService.deleteParticularVaccinationRecord(id);
   }
+
+  // Get checkup records by a specific date range
+     @UseGuards(JwtAuthGuard)
+     @Get('date-specific-vaccination-records/:cattleName')
+     @ApiOperation({ summary: 'Fetching all vaccination records based on the date' })
+     @ApiOkResponse({ description: 'Showing the data of vaccination records' })
+     @ApiUnauthorizedResponse({
+       description: 'Unauthorized access - JWT token required',
+     })
+     @ApiParam({
+       name: 'cattleName',
+       required: true,
+       example: 'Kaveri-001',
+       description: 'Enter a valid cattle name',
+     })
+     @ApiQuery({
+       name: 'fromDate',
+       required: true,
+       example: '2025-06-12',
+       description: 'Required date filter in YYYY-MM-DD format',
+     })
+     @ApiQuery({
+       name: 'toDate',
+       required: true,
+       example: '2025-06-12',
+       description: 'Required date filter in YYYY-MM-DD format',
+     })
+     async gettingDateBasedCheckupRecords(
+       @Param('cattleName') cattleName: string,
+       @Query('fromDate') fromDate: string,
+       @Query('toDate') toDate: string
+     ) {
+       return this.vaccinationService.getVaccinationRecordsForSpecificDate(cattleName, fromDate,toDate);
+     }
 }
