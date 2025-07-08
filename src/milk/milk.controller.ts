@@ -226,7 +226,7 @@ export class MilkController {
     name: 'session',
     required: false,
     example: 'Morning',
-    description: 'Optional session filter (e.g., Today,Morning, Afternoon, Evening)',
+    description: 'Optional session filter (e.g., Today,MORNING, AFTERNOON, EVENING)',
   })
   @ApiQuery({
     name: 'date',
