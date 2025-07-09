@@ -74,21 +74,21 @@ export class MilkController {
     name: 'sortBy',
     required: false,
     description:
-      'Query string for sorting data',
+      'Query string for sorting data based on (e.g.,"newest","oldest","name-asc","name-dsc")',
     example: 'newest',
   })
   @ApiQuery({
     name: 'filter',
     required: false,
     description:
-      'Query string for filtering data',
+      'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
     example: 'COW',
   })
   @ApiQuery({
     name: 'search',
     required: false,
     description:
-      'Search string for filtering data',
+      'Search string for filtering data based on cattle name',
     example: 'kaveri-004',
   })
   @ApiOkResponse({

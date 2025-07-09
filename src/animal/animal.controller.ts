@@ -113,14 +113,14 @@ export class AnimalController {
     name: 'sortBy',
     required: false,
     description:
-      'Query string for sorting data',
+      'Query string for sorting data based on (e.g.,"newest","oldest","name-asc","name-dsc")',
     example: 'newest',
   })
   @ApiQuery({
     name: 'filter',
     required: false,
     description:
-      'Query string for filtering data',
+      'Query string for filtering data based on breeds',
     example: 'KARAMPASU',
   })
   @ApiOkResponse({
