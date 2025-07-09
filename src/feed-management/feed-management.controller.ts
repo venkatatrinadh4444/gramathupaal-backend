@@ -115,8 +115,35 @@ export class FeedManagementController {
 
   //Fetching all feed records
   @UseGuards(JwtAuthGuard)
-  @Get('get-all-feed-records')
+  @Get('get-all-feed-records/:page')
   @ApiOperation({ summary: 'Get all feed records' })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter a valid animal name (e.g., 1)',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description:
+      'Query string for sorting data',
+    example: 'newest',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description:
+      'Query string for filtering data',
+    example: 'COW',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description:
+      'Search string for filtering data',
+    example: 'Green Fodder',
+  })
   @ApiOkResponse({
     description: 'List of all feed records',
     schema: {
@@ -134,8 +161,8 @@ export class FeedManagementController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllFeedRecords() {
-    return this.feedManagementService.gettingAllFeedRecords();
+  async gettingAllFeedRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
+    return this.feedManagementService.gettingAllFeedRecords(page,sortBy,filter,search);
   }
 
   //Edit a specific consumption record
