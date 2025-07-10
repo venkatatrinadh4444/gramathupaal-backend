@@ -340,40 +340,68 @@ export class AnimalService {
   }
 
   //Fetching feed history for specific animal
-  async getFeedHistory(cattleName: string) {
+  async getFeedHistory(cattleName: string, page:number) {
     try {
+      const skip = (page-1) * 10
+      const limit = 10;
+
       (await this.prisma.cattle.findFirst({ where: { cattleName } })) ||
         (() => {
           throw new NotFoundException('No animal found with the given id');
         })();
 
+      const totalCount = await this.prisma.feedConsumption.count({
+        where:{cattleName}
+      })
+
       const feedHistory = await this.prisma.feedConsumption.findMany({
         where: { cattleName },
         orderBy: { date: 'desc' },
+        skip:skip,
+        take:limit
       });
 
-      return { message: `Showing all feed records ${cattleName}`, feedHistory };
+      const feedHistoryOverview = {
+        feedHistory,
+        totalCount:totalCount,
+        totalPages: Math.ceil(totalCount/10)
+      }
+
+      return { message: `Showing all feed records ${cattleName}`, feedHistoryOverview };
     } catch (err) {
       catchBlock(err);
     }
   }
 
   //Fetching milk production history for specific animal
-  async milkProductionHistory(cattleName: string) {
+  async milkProductionHistory(cattleName: string , page:number) {
     try {
+      const skip = (page-1) * 10
+      const limit = 10;
+
       (await this.prisma.cattle.findFirst({ where: { cattleName } })) ||
         (() => {
           throw new NotFoundException('No animal found with the given id');
         })();
 
+      const totalCount = await this.prisma.milk.count({where:{cattleId:cattleName}})
+
       const allMilkRecords = await this.prisma.milk.findMany({
         where: { cattleId: cattleName },
         orderBy: { date: 'desc' },
+        skip:skip,
+        take:limit
       });
+
+      const milkHistoryOverview = {
+        allMilkRecords,
+        totalCount:totalCount,
+        totalPages: Math.ceil(totalCount/10)
+      }
 
       return {
         message: `Showing all milk records ${cattleName}`,
-        allMilkRecords,
+        milkHistoryOverview
       };
     } catch (err) {
       catchBlock(err);
@@ -381,21 +409,34 @@ export class AnimalService {
   }
 
   //Fetching checkup history for specific animal
-  async getCheckupHistory(cattleName: string) {
+  async getCheckupHistory(cattleName: string , page:number) {
     try {
+      const skip = (page-1) * 10
+      const limit = 10;
+
       (await this.prisma.cattle.findFirst({ where: { cattleName } })) ||
         (() => {
           throw new NotFoundException('No animal found with the given id');
         })();
 
+      const totalCount = await this.prisma.checkup.count({where:{cattleName}})
+
       const medicalReports = await this.prisma.checkup.findMany({
         where: { cattleName },
         orderBy: { date: 'desc' },
+        skip:skip,
+        take:limit
       });
+
+      const checkupHistoryOverview = {
+        medicalReports,
+        totalCount:totalCount,
+        totalPages: Math.ceil(totalCount/10)
+      }
 
       return {
         message: `Showing all medical records ${cattleName}`,
-        medicalReports,
+        checkupHistoryOverview
       };
     } catch (err) {
       catchBlock(err);

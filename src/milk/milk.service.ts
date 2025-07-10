@@ -728,6 +728,33 @@ export class MilkService {
         const previousEndTime = new Date(previousStartTime);
         previousEndTime.setHours(23, 59, 59, 999);
 
+        
+
+        // return { message: currentData?.message, cardsMilk };
+      }
+
+      if (fromDate && toDate && session as SelectedSession) {
+        const start = new Date(fromDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(toDate);
+        end.setHours(23, 59, 59, 999);
+
+        // Calculate number of days in the current range
+        const diffInDays = Math.ceil(
+          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        // Previous range ends the day before the current start
+        const previousEndTime = new Date(start);
+        previousEndTime.setDate(start.getDate() - 1);
+        previousEndTime.setHours(23, 59, 59, 999);
+
+        // Previous range starts `diffInDays` before the previousEndTime
+        const previousStartTime = new Date(previousEndTime);
+        previousStartTime.setDate(previousEndTime.getDate() - (diffInDays - 1));
+        previousStartTime.setHours(0, 0, 0, 0);
+
         const fetchSessionMilkData = async (
           prisma: any,
           session: 'MORNING' | 'AFTERNOON' | 'EVENING',
@@ -846,8 +873,8 @@ export class MilkService {
         const currentData = await fetchSessionMilkData(
           this.prisma,
           session as SelectedSession,
-          startTime,
-          endTime,
+          start,
+          end,
         );
 
         const previousData = await fetchSessionMilkData(
@@ -862,42 +889,8 @@ export class MilkService {
           previousData?.dashboardData,
         );
 
-        return { message: currentData?.message, cardsMilk };
-      }
-
-      if (fromDate && toDate) {
-        const start = new Date(fromDate);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(toDate);
-        end.setHours(23, 59, 59, 999);
-
-        // Calculate number of days in the current range
-        const diffInDays = Math.ceil(
-          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-        );
-
-        // Previous range ends the day before the current start
-        const previousEndTime = new Date(start);
-        previousEndTime.setDate(start.getDate() - 1);
-        previousEndTime.setHours(23, 59, 59, 999);
-
-        // Previous range starts `diffInDays` before the previousEndTime
-        const previousStartTime = new Date(previousEndTime);
-        previousStartTime.setDate(previousEndTime.getDate() - (diffInDays - 1));
-        previousStartTime.setHours(0, 0, 0, 0);
-
-        const currentData = await fetchingMilkData(start, end);
-
-        const previousData = await fetchingMilkData(
-          previousStartTime,
-          previousEndTime,
-        );
-
-        settingMilkSectionData(currentData, previousData);
-
         return {
-          message: `Showing all the dashboard data based on date ${fromDate} to ${toDate}`,
+          message: `Showing all the dashboard data based on date ${fromDate} to ${toDate} based on ${session}`,
           cardsMilk,
         };
       }

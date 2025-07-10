@@ -239,13 +239,19 @@ export class AnimalController {
 
   //Fetch Feed history
   @UseGuards(JwtAuthGuard)
-  @Get('feed-history/:cattleName')
+  @Get('feed-history/:cattleName/:page')
   @ApiOperation({ summary: 'Get feed history of a specific animal' })
   @ApiParam({
     name: 'cattleName',
     required: true,
     example: 'Kaveri-05',
     description: 'Enter the cattle name (e.g., Kaveri-05)',
+  })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter the page number (e.g.,1)',
   })
   @ApiOkResponse({ description: 'Feed history fetched successfully' })
   @ApiBadRequestResponse({
@@ -259,22 +265,28 @@ export class AnimalController {
     },
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access' })
-  async getAllFeedHistory(@Param('cattleName') cattleName: string) {
+  async getAllFeedHistory(@Param('cattleName') cattleName: string, @Param('page',ParseIntPipe) page:number) {
     if (!/^[A-Za-z]+-\d+$/.test(cattleName)) {
       throw new BadRequestException('Invalid cattle name format');
     }
-    return this.animalServie.getFeedHistory(cattleName);
+    return this.animalServie.getFeedHistory(cattleName,page);
   }
 
   //Fetch milk production history
   @UseGuards(JwtAuthGuard)
-  @Get('milk-history/:cattleName')
+  @Get('milk-history/:cattleName/:page')
   @ApiOperation({ summary: 'Get milk production history of a specific animal' })
   @ApiParam({
     name: 'cattleName',
     required: true,
     example: 'Kaveri-05',
     description: 'Enter the cattle name (e.g., Kaveri-05)',
+  })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter the page number (e.g.,1)',
   })
   @ApiOkResponse({
     description: 'Milk production history fetched successfully',
@@ -283,16 +295,16 @@ export class AnimalController {
     description: 'Invalid cattle name format',
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access' })
-  async getAllMilkHistory(@Param('cattleName') cattleName: string) {
+  async getAllMilkHistory(@Param('cattleName') cattleName: string , @Param('page',ParseIntPipe) page:number) {
     if (!/^[A-Za-z]+-\d+$/.test(cattleName)) {
       throw new BadRequestException('Invalid cattle name format');
     }
-    return this.animalServie.milkProductionHistory(cattleName);
+    return this.animalServie.milkProductionHistory(cattleName,page);
   }
 
   //Fetch checkup history
   @UseGuards(JwtAuthGuard)
-  @Get('checkup-history/:cattleName')
+  @Get('checkup-history/:cattleName/:page')
   @ApiOperation({ summary: 'Get checkup history of a specific animal' })
   @ApiParam({
     name: 'cattleName',
@@ -300,16 +312,22 @@ export class AnimalController {
     example: 'Kaveri-05',
     description: 'Enter the cattle name (e.g., Kaveri-05)',
   })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter the page number (e.g.,1)',
+  })
   @ApiOkResponse({ description: 'Checkup history fetched successfully' })
   @ApiBadRequestResponse({
     description: 'Invalid cattle name format',
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access' })
-  async getAllCheckupHistory(@Param('cattleName') cattleName: string) {
+  async getAllCheckupHistory(@Param('cattleName') cattleName: string , @Param('page',ParseIntPipe) page:number) {
     if (!/^[A-Za-z]+-\d+$/.test(cattleName)) {
       throw new BadRequestException('Invalid cattle name format');
     }
-    return this.animalServie.getCheckupHistory(cattleName);
+    return this.animalServie.getCheckupHistory(cattleName,page);
   }
 
   //Get cattle management top section data
