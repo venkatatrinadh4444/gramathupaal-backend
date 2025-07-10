@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCheckupDto } from './dto/add-checkup.dto';
 import { catchBlock } from '../common/catch-block';
 import { EditCheckupDto } from './dto/edit-checkup.dto';
+import { CattleType } from '@prisma/client';
 
 @Injectable()
 export class CheckupService {
@@ -51,9 +56,18 @@ export class CheckupService {
   }
 
   //Fetch all the checkup records
-  async fetchingAllCheckups() {
+  async fetchingAllCheckups(
+    page: number,
+    sortBy: string,
+    filter: string,
+    search: string,
+  ) {
     try {
-      const allCheckups = await this.prisma.checkup.findMany({
+      const skip = (page - 1) * 25;
+      const limit = 25;
+      let message = 'Showing initial all checkup records';
+      let totalCount = await this.prisma.checkup.count();
+      let allCheckups = await this.prisma.checkup.findMany({
         orderBy: { date: 'desc' },
         select: {
           id: true,
@@ -71,8 +85,221 @@ export class CheckupService {
             },
           },
         },
+        skip:skip,
+        take:limit
       });
-      return { message: 'Showing all the doctor checkups', allCheckups };
+
+      if (sortBy) {
+        message = `Showing the sorted data based on the ${sortBy}`;
+        switch (sortBy) {
+          case 'name-asc':
+            allCheckups = await this.prisma.checkup.findMany({
+              orderBy: { prescription: 'asc' },
+              select: {
+                id: true,
+                date: true,
+                prescription: true,
+                description: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip:skip,
+              take:limit
+            });
+            break;
+          case 'name-desc':
+            allCheckups = await this.prisma.checkup.findMany({
+              orderBy: { prescription: 'desc' },
+              select: {
+                id: true,
+                date: true,
+                prescription: true,
+                description: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip:skip,
+              take:limit
+            });
+            break;
+          case 'newest':
+            allCheckups = await this.prisma.checkup.findMany({
+              orderBy: { date: 'desc' },
+              select: {
+                id: true,
+                date: true,
+                prescription: true,
+                description: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip:skip,
+              take:limit
+            });
+            break;
+          case 'descending':
+            allCheckups = await this.prisma.checkup.findMany({
+              orderBy: { date: 'asc' },
+              select: {
+                id: true,
+                date: true,
+                prescription: true,
+                description: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip:skip,
+              take:limit
+            });
+            break;
+          default:
+            throw new BadRequestException('Please a valid sort by value');
+        }
+      }
+
+      if (filter) {
+        message = `Showing the filterd records based on ${filter}`;
+        const type = filter.toUpperCase() as CattleType;
+
+        if (Object.values(CattleType).includes(type)) {
+          totalCount = await this.prisma.checkup.count({
+            where: {
+              cattle: {
+                type: type,
+              },
+            },
+          });
+          allCheckups = await this.prisma.checkup.findMany({
+            where: {
+              cattle: {
+                type: type,
+              },
+            },
+            orderBy: { date: 'desc' },
+            select: {
+              id: true,
+              date: true,
+              prescription: true,
+              description: true,
+              doctorName: true,
+              doctorPhone: true,
+              cattle: {
+                select: {
+                  image1: true,
+                  active: true,
+                  cattleName: true,
+                  type: true,
+                },
+              },
+            },
+            skip:skip,
+            take:limit
+          });
+        }
+      }
+
+      if (search) {
+        message = `Showing the searched records based on ${search}`;
+        totalCount = await this.prisma.checkup.count({
+          where: {
+            OR: [
+              {
+                cattle: {
+                  cattleName: {
+                    contains: search.toLowerCase(),
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                prescription: {
+                  contains: search.toLowerCase(),
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          },
+        });
+        allCheckups = await this.prisma.checkup.findMany({
+          where: {
+            OR: [
+              {
+                cattle: {
+                  cattleName: {
+                    contains: search.toLowerCase(),
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                prescription: {
+                  contains: search.toLowerCase(),
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          },
+          orderBy: { date: 'desc' },
+          select: {
+            id: true,
+            date: true,
+            prescription: true,
+            description: true,
+            doctorName: true,
+            doctorPhone: true,
+            cattle: {
+              select: {
+                image1: true,
+                active: true,
+                cattleName: true,
+                type: true,
+              },
+            },
+          },
+          skip:skip,
+          take:limit
+        });
+      }
+
+      const checkupOverview = {
+        allCheckups,
+        totalRecordsCount : totalCount,
+        totalPages : Math.ceil(totalCount/25)
+      }
+
+      return { message, checkupOverview };
     } catch (err) {
       catchBlock(err);
     }

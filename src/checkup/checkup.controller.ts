@@ -48,14 +48,41 @@ export class CheckupController {
 
   //Fetch all the checkup records
   @UseGuards(JwtAuthGuard)
-  @Get('get-all-records')
+  @Get('get-all-records/:page')
   @ApiOperation({ summary: 'Fetch all checkup records' })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter a valid animal name (e.g., 1)',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description:
+      'Query string for sorting data based on (e.g.,"newest","oldest","name-asc","name-dsc")',
+    example: 'newest',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description:
+      'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
+    example: 'COW',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description:
+      'Search string for filtering data based on cattle name, prescription',
+    example: 'kaveri-004',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns a list of all checkup records',
   })
-  async gettingAllDoctorCheckupReports() {
-    return this.checkupService.fetchingAllCheckups();
+  async gettingAllDoctorCheckupReports(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
+    return this.checkupService.fetchingAllCheckups(page,sortBy,filter,search);
   }
 
   //Fetch specific animal checkup records

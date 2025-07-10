@@ -33,7 +33,6 @@ import {
 export class VaccinationController {
   constructor(private readonly vaccinationService: VaccinationService) {}
 
-
   //Add new vaccination record
   @UseGuards(JwtAuthGuard)
   @Post('add-new')
@@ -61,14 +60,51 @@ export class VaccinationController {
 
   //Fetch all vaccination records
   @UseGuards(JwtAuthGuard)
-  @Get('all-vaccination-records')
+  @Get('all-vaccination-records/:page')
   @ApiOperation({ summary: 'Get all vaccination records' })
+  @ApiParam({
+    name: 'page',
+    required: true,
+    example: 1,
+    description: 'Enter a valid animal name (e.g., 1)',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description:
+      'Query string for sorting data based on (e.g.,"newest","oldest","name-asc","name-dsc")',
+    example: 'newest',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description:
+      'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
+    example: 'COW',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description:
+      'Search string for filtering data based on cattle name, vaccination name',
+    example: 'kaveri-004',
+  })
   @ApiOkResponse({
     description: 'All vaccination records retrieved successfully',
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access' })
-  async gettingAllVaccinationRecords() {
-    return this.vaccinationService.fetchingAllVaccinationRecords();
+  async gettingAllVaccinationRecords(
+    @Param('page', ParseIntPipe) page: number,
+    @Query('sortBy') sortBy: string,
+    @Query('filter') filter: string,
+    @Query('search') search: string,
+  ) {
+    return this.vaccinationService.fetchingAllVaccinationRecords(
+      page,
+      sortBy,
+      filter,
+      search,
+    );
   }
 
   //Fetch specific animal vaccination records
@@ -168,36 +204,42 @@ export class VaccinationController {
   }
 
   // Get checkup records by a specific date range
-     @UseGuards(JwtAuthGuard)
-     @Get('date-specific-vaccination-records/:cattleName')
-     @ApiOperation({ summary: 'Fetching all vaccination records based on the date' })
-     @ApiOkResponse({ description: 'Showing the data of vaccination records' })
-     @ApiUnauthorizedResponse({
-       description: 'Unauthorized access - JWT token required',
-     })
-     @ApiParam({
-       name: 'cattleName',
-       required: true,
-       example: 'Kaveri-001',
-       description: 'Enter a valid cattle name',
-     })
-     @ApiQuery({
-       name: 'fromDate',
-       required: true,
-       example: '2025-06-12',
-       description: 'Required date filter in YYYY-MM-DD format',
-     })
-     @ApiQuery({
-       name: 'toDate',
-       required: true,
-       example: '2025-06-12',
-       description: 'Required date filter in YYYY-MM-DD format',
-     })
-     async gettingDateBasedCheckupRecords(
-       @Param('cattleName') cattleName: string,
-       @Query('fromDate') fromDate: string,
-       @Query('toDate') toDate: string
-     ) {
-       return this.vaccinationService.getVaccinationRecordsForSpecificDate(cattleName, fromDate,toDate);
-     }
+  @UseGuards(JwtAuthGuard)
+  @Get('date-specific-vaccination-records/:cattleName')
+  @ApiOperation({
+    summary: 'Fetching all vaccination records based on the date',
+  })
+  @ApiOkResponse({ description: 'Showing the data of vaccination records' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access - JWT token required',
+  })
+  @ApiParam({
+    name: 'cattleName',
+    required: true,
+    example: 'Kaveri-001',
+    description: 'Enter a valid cattle name',
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  async gettingDateBasedCheckupRecords(
+    @Param('cattleName') cattleName: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    return this.vaccinationService.getVaccinationRecordsForSpecificDate(
+      cattleName,
+      fromDate,
+      toDate,
+    );
+  }
 }

@@ -76,21 +76,21 @@ export class FeedStockController {
       name: 'sortBy',
       required: false,
       description:
-        'Query string for sorting data',
+        'Query string for sorting data based on (e.g.,"newest","oldest","name-asc","name-dsc")',
       example: 'newest',
     })
     @ApiQuery({
       name: 'filter',
       required: false,
       description:
-        'Query string for filtering data',
+        'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
       example: 'KG',
     })
     @ApiQuery({
       name: 'search',
       required: false,
       description:
-        'Search string for filtering data',
+        'Search string for filterin data based on the stock name',
       example: 'Gross',
     })
   @ApiOkResponse({

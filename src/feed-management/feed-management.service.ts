@@ -385,21 +385,53 @@ export class FeedManagementService {
 
       if (search) {
         message = `Showing the data based on the ${search} value`;
+        const possibleEnum = Object.values(SelectedSession).includes(
+          search.toUpperCase() as SelectedSession,
+        )
+          ? (search.toUpperCase() as SelectedSession)
+          : undefined;
+
         totalCount = await this.prisma.feedConsumption.count({
           where: {
-            feedName: {
-              contains: search,
-              mode: 'insensitive',
-            },
+            OR: [
+              {
+                feedName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                cattleName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                session: possibleEnum && possibleEnum,
+              },
+            ],
           },
         });
 
         allFeedRecords = await this.prisma.feedConsumption.findMany({
           where: {
-            feedName: {
-              contains: search,
-              mode: 'insensitive',
-            },
+            OR: [
+              {
+                feedName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                cattleName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                session: possibleEnum && possibleEnum,
+              },
+            ],
           },
           orderBy: { date: 'desc' },
           select: {

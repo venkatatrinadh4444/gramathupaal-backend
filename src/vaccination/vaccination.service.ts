@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateVaccinationDto } from './dto/add-vaccination.dto';
 import { catchBlock } from '../common/catch-block';
 import { EditVaccinationDto } from './dto/edit-vaccination.dto';
+import { CattleType } from '@prisma/client';
 
 @Injectable()
 export class VaccinationService {
@@ -51,17 +52,26 @@ export class VaccinationService {
   }
 
   //Fetch all vaccination records
-  async fetchingAllVaccinationRecords() {
+  async fetchingAllVaccinationRecords(
+    page: number,
+    sortBy: string,
+    filter: string,
+    search: string,
+  ) {
     try {
-      const allReports = await this.prisma.vaccination.findMany({
+      const skip = (page - 1) * 25;
+      const limit = 25;
+      let message = 'Showing the all initial checkup records';
+      let totalCount = await this.prisma.vaccination.count();
+      let allReports = await this.prisma.vaccination.findMany({
         orderBy: { date: 'desc' },
         select: {
           id: true,
           date: true,
           name: true,
           notes: true,
-          doctorName:true,
-          doctorPhone:true,
+          doctorName: true,
+          doctorPhone: true,
           cattle: {
             select: {
               image1: true,
@@ -71,22 +81,224 @@ export class VaccinationService {
             },
           },
         },
+        skip: skip,
+        take: limit,
       });
-      const totalIllnessCount=await this.prisma.checkup.count({
-        where:{
-          cattle:{
-            healthStatus:'INJURED'
-          }
+
+      if (sortBy) {
+        message = `Showing the sorted records based on ${sortBy}`;
+        switch (sortBy) {
+          case 'name-asc':
+            allReports = await this.prisma.vaccination.findMany({
+              orderBy: { name: 'asc' },
+              select: {
+                id: true,
+                date: true,
+                name: true,
+                notes: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'name-desc':
+            allReports = await this.prisma.vaccination.findMany({
+              orderBy: { name: 'desc' },
+              select: {
+                id: true,
+                date: true,
+                name: true,
+                notes: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'newest':
+            allReports = await this.prisma.vaccination.findMany({
+              orderBy: { date: 'desc' },
+              select: {
+                id: true,
+                date: true,
+                name: true,
+                notes: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'oldest':
+            allReports = await this.prisma.vaccination.findMany({
+              orderBy: { date: 'asc' },
+              select: {
+                id: true,
+                date: true,
+                name: true,
+                notes: true,
+                doctorName: true,
+                doctorPhone: true,
+                cattle: {
+                  select: {
+                    image1: true,
+                    active: true,
+                    cattleName: true,
+                    type: true,
+                  },
+                },
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
         }
-      })
-      const checkupDashboard={
-        allReports,
-        totalCheckups:allReports.length,
-        totalIllnessCount:totalIllnessCount??0
       }
+
+      if (filter) {
+        message = `Showing the filtered records based on ${filter}`;
+        const type = filter.toUpperCase() as CattleType;
+        if (Object.values(CattleType).includes(type)) {
+          totalCount = await this.prisma.vaccination.count({
+            where: {
+              cattle: {
+                type: type,
+              },
+            },
+          });
+          allReports = await this.prisma.vaccination.findMany({
+            where: {
+              cattle: {
+                type: type,
+              },
+            },
+            orderBy: { date: 'desc' },
+            select: {
+              id: true,
+              date: true,
+              name: true,
+              notes: true,
+              doctorName: true,
+              doctorPhone: true,
+              cattle: {
+                select: {
+                  image1: true,
+                  active: true,
+                  cattleName: true,
+                  type: true,
+                },
+              },
+            },
+            skip: skip,
+            take: limit,
+          });
+        }
+      }
+
+      if (search) {
+        message = `Showing the searched records based on ${search}`;
+        totalCount = await this.prisma.vaccination.count({
+          where: {
+            OR: [
+              {
+                cattleName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                name: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          },
+        });
+        allReports = await this.prisma.vaccination.findMany({
+          where: {
+            OR: [
+              {
+                cattleName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                name: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          },
+          orderBy: { date: 'desc' },
+          select: {
+            id: true,
+            date: true,
+            name: true,
+            notes: true,
+            doctorName: true,
+            doctorPhone: true,
+            cattle: {
+              select: {
+                image1: true,
+                active: true,
+                cattleName: true,
+                type: true,
+              },
+            },
+          },
+          skip: skip,
+          take: limit,
+        });
+      }
+
+      const totalIllnessCount = await this.prisma.checkup.count({
+        where: {
+          cattle: {
+            healthStatus: 'INJURED',
+          },
+        },
+      });
+      const checkupDashboard = {
+        allReports,
+        totalCheckups: allReports.length,
+        totalIllnessCount: totalIllnessCount ?? 0,
+        totalRecordCount: totalCount,
+        totalPages: Math.ceil(totalCount/25)
+      };
       return {
-        message: 'Showing all the doctor vaccination reports',
-        checkupDashboard
+        message,
+        checkupDashboard,
       };
     } catch (err) {
       catchBlock(err);

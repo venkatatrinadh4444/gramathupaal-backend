@@ -230,25 +230,38 @@ export class MilkService {
       }
 
       if (search) {
-        message = `Showing the filtered data for ${search}`;
+        message = `Showing the searched records based on ${search}`;
+        const possibleEnum = Object.values(SelectedMilkGrade).includes(search as SelectedMilkGrade) ? (search as SelectedMilkGrade): undefined
         totalCount = await this.prisma.milk.count({
           where: {
-            cattle: {
-              cattleName: {
-                contains: search.toLowerCase(),
-                mode: 'insensitive',
+            OR: [ {
+              cattle: {
+                cattleName: {
+                  contains: search.toLowerCase(),
+                  mode: 'insensitive',
+                },
               },
             },
+            {
+              milkGrade: possibleEnum && possibleEnum
+            }
+            ]
           },
         });
         allRecords = await this.prisma.milk.findMany({
           where: {
-            cattle: {
-              cattleName: {
-                contains: search.toLowerCase(),
-                mode: 'insensitive',
+            OR: [ {
+              cattle: {
+                cattleName: {
+                  contains: search.toLowerCase(),
+                  mode: 'insensitive',
+                },
               },
             },
+            {
+              milkGrade: possibleEnum && possibleEnum
+            }
+            ]
           },
           select: {
             cattle: {
