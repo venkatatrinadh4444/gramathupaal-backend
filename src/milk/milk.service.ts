@@ -689,19 +689,29 @@ export class MilkService {
         });
       };
 
-      if (session === 'Today') {
-        const startTime = new Date();
-        startTime.setHours(0, 0, 0, 0);
-        const endTime = new Date(startTime);
-        endTime.setHours(23, 59, 59, 999);
+      if (fromDate && toDate && session === 'Overall') {
+        const start = new Date(fromDate);
+        start.setHours(0, 0, 0, 0);
 
-        const previousStartTime = new Date(startTime);
-        previousStartTime.setDate(startTime.getDate() - 1);
-        previousStartTime.setHours(0, 0, 0, 0);
-        const previousEndTime = new Date(previousStartTime);
+        const end = new Date(toDate);
+        end.setHours(23, 59, 59, 999);
+
+        // Calculate number of days in the current range
+        const diffInDays = Math.ceil(
+          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        // Previous range ends the day before the current start
+        const previousEndTime = new Date(start);
+        previousEndTime.setDate(start.getDate() - 1);
         previousEndTime.setHours(23, 59, 59, 999);
 
-        const currentData = await fetchingMilkData(startTime, endTime);
+        // Previous range starts `diffInDays` before the previousEndTime
+        const previousStartTime = new Date(previousEndTime);
+        previousStartTime.setDate(previousEndTime.getDate() - (diffInDays - 1));
+        previousStartTime.setHours(0, 0, 0, 0);
+
+        const currentData = await fetchingMilkData(start, end);
 
         const previousData = await fetchingMilkData(
           previousStartTime,
@@ -711,7 +721,7 @@ export class MilkService {
         settingMilkSectionData(currentData, previousData);
 
         return {
-          message: 'Showing all the dashboard data for Today',
+          message: `Showing all the dashboard data for Overall ${fromDate} to ${toDate} `,
           cardsMilk,
         };
       }
@@ -896,7 +906,7 @@ export class MilkService {
       }
 
       throw new BadRequestException(
-        'Please enter a valid session or date as query value',
+        'Please enter a valid session and from date to to date as query value',
       );
     } catch (err) {
       catchBlock(err);
