@@ -11,7 +11,6 @@ import { ConfigService } from '@nestjs/config';
 import { $Enums, CattleBreed } from '@prisma/client';
 import { EditAnimalDto } from './dto/edit-animal.dto';
 import { AddNewCalfDto } from './dto/add-calf.dto';
-import { take } from 'rxjs';
 
 @Injectable()
 export class AnimalService {
@@ -190,22 +189,90 @@ export class AnimalService {
       }
 
       for (const eachCattle of allCattlesDetails) {
-        const averageValue = await this.prisma.milk.aggregate({
-          where: {
-            cattleId: eachCattle.cattleName,
-          },
-          _avg: {
-            morningMilk: true,
-            afternoonMilk: true,
-            eveningMilk: true,
-          },
-        });
+        const now = new Date();
+        const endTime = new Date(now);
+        endTime.setHours(23, 59, 59, 999);
+        const startTime = new Date(now);
+        startTime.setMonth(startTime.getMonth() - 1);
+        startTime.setHours(0, 0, 0, 0);
+
+        const previousEndTime = new Date(startTime)
+        previousEndTime.setDate(previousEndTime.getDate() - 1)
+        previousEndTime.setHours(23,59,59,999)
+        const previousStartTime = new Date(startTime)
+        previousStartTime.setMonth(previousStartTime.getMonth()-1)
+        previousStartTime.setHours(0,0,0,0)
+
+        const getAverageValue =async (startTime:any,endTime:any) => {
+          const averageValue = await this.prisma.milk.aggregate({
+            where: {
+              cattleId: eachCattle.cattleName,
+              date:{
+                gte:startTime,
+                lte:endTime
+              }
+            },
+            _avg: {
+              morningMilk: true,
+              afternoonMilk: true,
+              eveningMilk: true,
+            },
+          });
+          return  Number(averageValue._avg.morningMilk) +Number(averageValue._avg.afternoonMilk) + Number(averageValue._avg.eveningMilk) / 3
+        }
+
+        function calculatePercentageChange(previous: number, current: number) {
+          if (previous === 0 && current === 0) {
+            return {
+              status: 'no_change',
+              percent: 0,
+              message: 'No change (both values are 0)',
+            };
+          }
+  
+          if (previous === 0) {
+            return {
+              status: 'increase',
+              percent: 100,
+              message: 'Cannot calculate change from 0',
+            };
+          }
+  
+          const change = ((current - previous) / previous) * 100;
+          const rounded = parseFloat(change.toFixed(2));
+  
+          if (change > 0) {
+            return {
+              status: 'increase',
+              percent: rounded,
+              message: `Increased by ${rounded}%`,
+            };
+          } else if (change < 0) {
+            return {
+              status: 'decrease',
+              percent: Math.abs(rounded),
+              message: `Decreased by ${Math.abs(rounded)}%`,
+            };
+          } else {
+            return {
+              status: 'no_change',
+              percent: 0,
+              message: 'No change',
+            };
+          }
+        }
+
+        const currentAverageValue = await getAverageValue(startTime,endTime)
+
+        const previousAverageValue = await getAverageValue(previousStartTime,previousEndTime)
+
+        const calculatedPercentage = calculatePercentageChange(previousAverageValue,currentAverageValue)
+        
         const eachCattleDetails = {
           ...eachCattle,
-          averageMilk:
-            Number(averageValue._avg.morningMilk) +
-            Number(averageValue._avg.afternoonMilk) +
-            Number(averageValue._avg.eveningMilk) / 3,
+          averageMilk:currentAverageValue,
+          status:calculatedPercentage?.status,
+          percentage:calculatedPercentage?.percent,
           totalPages: Math.ceil(totalPages / 25),
           totalAnimalCount: totalPages,
         };
@@ -340,9 +407,9 @@ export class AnimalService {
   }
 
   //Fetching feed history for specific animal
-  async getFeedHistory(cattleName: string, page:number) {
+  async getFeedHistory(cattleName: string, page: number) {
     try {
-      const skip = (page-1) * 10
+      const skip = (page - 1) * 10;
       const limit = 10;
 
       (await this.prisma.cattle.findFirst({ where: { cattleName } })) ||
@@ -351,32 +418,35 @@ export class AnimalService {
         })();
 
       const totalCount = await this.prisma.feedConsumption.count({
-        where:{cattleName}
-      })
+        where: { cattleName },
+      });
 
       const feedHistory = await this.prisma.feedConsumption.findMany({
         where: { cattleName },
         orderBy: { date: 'desc' },
-        skip:skip,
-        take:limit
+        skip: skip,
+        take: limit,
       });
 
       const feedHistoryOverview = {
         feedHistory,
-        totalCount:totalCount,
-        totalPages: Math.ceil(totalCount/10)
-      }
+        totalCount: totalCount,
+        totalPages: Math.ceil(totalCount / 10),
+      };
 
-      return { message: `Showing all feed records ${cattleName}`, feedHistoryOverview };
+      return {
+        message: `Showing all feed records ${cattleName}`,
+        feedHistoryOverview,
+      };
     } catch (err) {
       catchBlock(err);
     }
   }
 
   //Fetching milk production history for specific animal
-  async milkProductionHistory(cattleName: string , page:number) {
+  async milkProductionHistory(cattleName: string, page: number) {
     try {
-      const skip = (page-1) * 10
+      const skip = (page - 1) * 10;
       const limit = 10;
 
       (await this.prisma.cattle.findFirst({ where: { cattleName } })) ||
@@ -384,24 +454,26 @@ export class AnimalService {
           throw new NotFoundException('No animal found with the given id');
         })();
 
-      const totalCount = await this.prisma.milk.count({where:{cattleId:cattleName}})
+      const totalCount = await this.prisma.milk.count({
+        where: { cattleId: cattleName },
+      });
 
       const allMilkRecords = await this.prisma.milk.findMany({
         where: { cattleId: cattleName },
         orderBy: { date: 'desc' },
-        skip:skip,
-        take:limit
+        skip: skip,
+        take: limit,
       });
 
       const milkHistoryOverview = {
         allMilkRecords,
-        totalCount:totalCount,
-        totalPages: Math.ceil(totalCount/10)
-      }
+        totalCount: totalCount,
+        totalPages: Math.ceil(totalCount / 10),
+      };
 
       return {
         message: `Showing all milk records ${cattleName}`,
-        milkHistoryOverview
+        milkHistoryOverview,
       };
     } catch (err) {
       catchBlock(err);
@@ -409,9 +481,9 @@ export class AnimalService {
   }
 
   //Fetching checkup history for specific animal
-  async getCheckupHistory(cattleName: string , page:number) {
+  async getCheckupHistory(cattleName: string, page: number) {
     try {
-      const skip = (page-1) * 10
+      const skip = (page - 1) * 10;
       const limit = 10;
 
       (await this.prisma.cattle.findFirst({ where: { cattleName } })) ||
@@ -419,24 +491,26 @@ export class AnimalService {
           throw new NotFoundException('No animal found with the given id');
         })();
 
-      const totalCount = await this.prisma.checkup.count({where:{cattleName}})
+      const totalCount = await this.prisma.checkup.count({
+        where: { cattleName },
+      });
 
       const medicalReports = await this.prisma.checkup.findMany({
         where: { cattleName },
         orderBy: { date: 'desc' },
-        skip:skip,
-        take:limit
+        skip: skip,
+        take: limit,
       });
 
       const checkupHistoryOverview = {
         medicalReports,
-        totalCount:totalCount,
-        totalPages: Math.ceil(totalCount/10)
-      }
+        totalCount: totalCount,
+        totalPages: Math.ceil(totalCount / 10),
+      };
 
       return {
         message: `Showing all medical records ${cattleName}`,
-        checkupHistoryOverview
+        checkupHistoryOverview,
       };
     } catch (err) {
       catchBlock(err);
@@ -508,7 +582,7 @@ export class AnimalService {
           },
         });
 
-        const totalCattle = await this.prisma.cattle.findMany({
+        const totalCattle = await this.prisma.cattle.count({
           where: {
             farmEntryDate: {
               gte: startDate,
@@ -518,7 +592,7 @@ export class AnimalService {
           },
         });
 
-        const totalIllnessCases = await this.prisma.cattle.findMany({
+        const totalIllnessCases = await this.prisma.cattle.count({
           where: {
             healthStatus: 'INJURED',
             farmEntryDate: {
@@ -528,7 +602,7 @@ export class AnimalService {
           },
         });
 
-        const newlyAddedCattle = await this.prisma.cattle.findMany({
+        const newlyAddedCattle = await this.prisma.cattle.count({
           where: {
             farmEntryDate: {
               gte: startDate,
@@ -557,9 +631,9 @@ export class AnimalService {
             Number(totalMilk._sum.morningMilk) +
             Number(totalMilk._sum.afternoonMilk) +
             Number(totalMilk._sum.eveningMilk),
-          totalCattle: totalCattle.length,
-          totalIllnessCases: totalIllnessCases.length,
-          newlyAddedCattle: newlyAddedCattle.length,
+          totalCattle: totalCattle ?? 0,
+          totalIllnessCases: totalIllnessCases ?? 0,
+          newlyAddedCattle: newlyAddedCattle ?? 0,
           a2MilkCount:
             Number(a2MilkCount._sum.morningMilk) +
             Number(a2MilkCount._sum.afternoonMilk) +
@@ -695,6 +769,7 @@ export class AnimalService {
           previousWeekEnd.setHours(23, 59, 59, 999);
 
           topSection = await gettingTopData(lastWeek, today);
+
           const previousTopSectionForWeek = await gettingTopData(
             previousWeekStart,
             previousWeekEnd,
