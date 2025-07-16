@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { catchBlock } from '../common/catch-block';
 import { put } from '@vercel/blob';
 import { ConfigService } from '@nestjs/config';
-import { $Enums, CattleBreed } from '@prisma/client';
+import { $Enums, CattleBreed, CattleType, HealthStatus } from '@prisma/client';
 import { EditAnimalDto } from './dto/edit-animal.dto';
 import { AddNewCalfDto } from './dto/add-calf.dto';
 
@@ -81,7 +81,13 @@ export class AnimalService {
   }
 
   // Get all cattles
-  async gettingAllCattles(page: number, sortBy: string, filter: string) {
+  async gettingAllCattles(
+    page: number,
+    sortBy: string,
+    filter: string[],
+    fromDate: string,
+    toDate: string,
+  ) {
     try {
       const skip = (page - 1) * 25;
       const limit = 25;
@@ -133,59 +139,79 @@ export class AnimalService {
         }
       }
 
-      if (filter) {
-        message = 'showing the filtered data';
-        switch (filter) {
-          case 'COW':
-            totalPages = await this.prisma.cattle.count({
-              where: { type: 'COW' },
-            });
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              where: { type: 'COW' },
-              orderBy: { farmEntryDate: 'desc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'BUFFALO':
-            totalPages = await this.prisma.cattle.count({
-              where: { type: 'BUFFALO' },
-            });
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              where: { type: 'BUFFALO' },
-              orderBy: { farmEntryDate: 'desc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'GOAT':
-            totalPages = await this.prisma.cattle.count({
-              where: { type: 'GOAT' },
-            });
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              where: { type: 'GOAT' },
-              orderBy: { farmEntryDate: 'desc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case filter as CattleBreed:
-            if (!Object.values(CattleBreed).includes(filter as CattleBreed)) {
-              throw new BadRequestException('please enter a valid breed name');
-            }
-            totalPages = await this.prisma.cattle.count({
-              where: { breed: filter },
-            });
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              where: { breed: filter },
-              orderBy: { farmEntryDate: 'desc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          default:
-            throw new BadRequestException('Please enter a valid query value');
+      if (filter && Array.isArray(filter)) {
+        message = `Showing the filtered data based on selected filters`;
+      
+        const types: CattleType[] = [];
+        const breeds: CattleBreed[] = [];
+        const healthStatuses: HealthStatus[] = [];
+      
+        filter.forEach((f) => {
+          const upper = f.toUpperCase();
+      
+          if (Object.values(CattleType).includes(upper as CattleType)) {
+            types.push(upper as CattleType);
+          }
+      
+          if (Object.values(CattleBreed).includes(upper as CattleBreed)) {
+            breeds.push(upper as CattleBreed);
+          }
+      
+          if (Object.values(HealthStatus).includes(upper as HealthStatus)) {
+            healthStatuses.push(upper as HealthStatus);
+          }
+        });
+      
+        const where: any = {};
+      
+        if (types.length > 0) {
+          where.type = { in: types };
         }
+      
+        if (breeds.length > 0) {
+          where.breed = { in: breeds };
+        }
+      
+        if (healthStatuses.length > 0) {
+          where.healthStatus = { in: healthStatuses };
+        }
+        
+        totalPages = await this.prisma.cattle.count({ where });
+      
+        allCattlesDetails = await this.prisma.cattle.findMany({
+          where,
+          orderBy: { farmEntryDate: 'desc' },
+          skip,
+          take: limit,
+        });
+      }   
+
+      if (fromDate && toDate) {
+        message = `Showing the data based on ${fromDate} to ${toDate}`
+        const startDate = new Date(fromDate);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(toDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        totalPages = await this.prisma.cattle.count({
+          where: {
+            farmEntryDate: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        });
+        allCattlesDetails = await this.prisma.cattle.findMany({
+          where: {
+            farmEntryDate: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          orderBy: { farmEntryDate: 'desc' },
+          skip: skip,
+          take: limit,
+        });
       }
 
       for (const eachCattle of allCattlesDetails) {
@@ -196,21 +222,21 @@ export class AnimalService {
         startTime.setMonth(startTime.getMonth() - 1);
         startTime.setHours(0, 0, 0, 0);
 
-        const previousEndTime = new Date(startTime)
-        previousEndTime.setDate(previousEndTime.getDate() - 1)
-        previousEndTime.setHours(23,59,59,999)
-        const previousStartTime = new Date(startTime)
-        previousStartTime.setMonth(previousStartTime.getMonth()-1)
-        previousStartTime.setHours(0,0,0,0)
+        const previousEndTime = new Date(startTime);
+        previousEndTime.setDate(previousEndTime.getDate() - 1);
+        previousEndTime.setHours(23, 59, 59, 999);
+        const previousStartTime = new Date(startTime);
+        previousStartTime.setMonth(previousStartTime.getMonth() - 1);
+        previousStartTime.setHours(0, 0, 0, 0);
 
-        const getAverageValue =async (startTime:any,endTime:any) => {
+        const getAverageValue = async (startTime: any, endTime: any) => {
           const averageValue = await this.prisma.milk.aggregate({
             where: {
               cattleId: eachCattle.cattleName,
-              date:{
-                gte:startTime,
-                lte:endTime
-              }
+              date: {
+                gte: startTime,
+                lte: endTime,
+              },
             },
             _avg: {
               morningMilk: true,
@@ -218,8 +244,12 @@ export class AnimalService {
               eveningMilk: true,
             },
           });
-          return  Number(averageValue._avg.morningMilk) +Number(averageValue._avg.afternoonMilk) + Number(averageValue._avg.eveningMilk) / 3
-        }
+          return (
+            Number(averageValue._avg.morningMilk) +
+            Number(averageValue._avg.afternoonMilk) +
+            Number(averageValue._avg.eveningMilk) / 3
+          );
+        };
 
         function calculatePercentageChange(previous: number, current: number) {
           if (previous === 0 && current === 0) {
@@ -229,7 +259,7 @@ export class AnimalService {
               message: 'No change (both values are 0)',
             };
           }
-  
+
           if (previous === 0) {
             return {
               status: 'increase',
@@ -237,10 +267,10 @@ export class AnimalService {
               message: 'Cannot calculate change from 0',
             };
           }
-  
+
           const change = ((current - previous) / previous) * 100;
           const rounded = parseFloat(change.toFixed(2));
-  
+
           if (change > 0) {
             return {
               status: 'increase',
@@ -262,17 +292,23 @@ export class AnimalService {
           }
         }
 
-        const currentAverageValue = await getAverageValue(startTime,endTime)
+        const currentAverageValue = await getAverageValue(startTime, endTime);
 
-        const previousAverageValue = await getAverageValue(previousStartTime,previousEndTime)
+        const previousAverageValue = await getAverageValue(
+          previousStartTime,
+          previousEndTime,
+        );
 
-        const calculatedPercentage = calculatePercentageChange(previousAverageValue,currentAverageValue)
-        
+        const calculatedPercentage = calculatePercentageChange(
+          previousAverageValue,
+          currentAverageValue,
+        );
+
         const eachCattleDetails = {
           ...eachCattle,
-          averageMilk:currentAverageValue,
-          status:calculatedPercentage?.status,
-          percentage:calculatedPercentage?.percent,
+          averageMilk: currentAverageValue,
+          status: calculatedPercentage?.status,
+          percentage: calculatedPercentage?.percent,
           totalPages: Math.ceil(totalPages / 25),
           totalAnimalCount: totalPages,
         };
@@ -531,35 +567,35 @@ export class AnimalService {
         {
           number: '',
           title: 'Total Milk',
-          des: 'Total milk collected across animals',
+          des: 'Milk collected across all cattle',
           percentage: '',
           status: '',
         },
         {
           number: '',
           title: 'Total Cattle',
-          des: 'Quantity of milk classified as A1',
+          des: 'Count of all cattle added to the system',
           percentage: '',
           status: '',
         },
         {
           number: '',
           title: 'Total Illness Cases',
-          des: 'Quantity of milk classified as A2',
+          des: 'Number of cattle reported sick',
           percentage: '',
           status: '',
         },
         {
           number: '',
           title: 'Newly Added Cattle',
-          des: 'The total buffalo milk production',
+          des: 'Cattle added during the current period',
           percentage: '',
           status: '',
         },
         {
           number: '',
           title: 'A2 Milk Production',
-          des: 'The total karampasu milk production',
+          des: 'Quantity of A2 milk collected',
           percentage: '',
           status: '',
         },
@@ -1044,6 +1080,7 @@ export class AnimalService {
     }
   }
 
+  //Adding a new calf
   async addNewCalf(calfDto: AddNewCalfDto) {
     try {
       const { birthDate, cattleName, ...restOfValues } = calfDto;
@@ -1074,6 +1111,7 @@ export class AnimalService {
     } catch (err) {}
   }
 
+  // Showing the list all calfs
   async allCalfDetails(cattleName: string) {
     try {
       (await this.prisma.cattle.findFirst({ where: { cattleName } })) ||
@@ -1092,6 +1130,28 @@ export class AnimalService {
         message: `Showing all the calf details for ${cattleName}`,
         allCalfs,
       };
+    } catch (err) {
+      catchBlock(err);
+    }
+  }
+
+  // Creating a dynamic id for cattle name
+  async generateCattleId(type: string) {
+    try {
+      const length = await this.prisma.cattle.count();
+      const cattleId = `${type.toLocaleLowerCase()}-${length}`;
+      return { message: 'New Cattle ID generated', cattleId };
+    } catch (err) {
+      catchBlock(err);
+    }
+  }
+
+  //Creating a dynamic id for calf
+  async generateCalfId(type: string) {
+    try {
+      const length = await this.prisma.calf.count();
+      const cattleId = `${type.toLocaleLowerCase().slice(0, 1)}-${length}`;
+      return { message: 'New Calf ID generated', cattleId };
     } catch (err) {
       catchBlock(err);
     }

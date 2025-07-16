@@ -79,10 +79,11 @@ export class MilkController {
   })
   @ApiQuery({
     name: 'filter',
+    isArray:true,
     required: false,
     description:
-      'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
-    example: 'COW',
+      'Query string for filtering data based on breeds and cattle type and milk grade',
+      example: ['COW', 'A1'],
   })
   @ApiQuery({
     name: 'search',
@@ -90,6 +91,20 @@ export class MilkController {
     description:
       'Search string for filtering data based on cattle name',
     example: 'kaveri-004',
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description:
+      'Specific start date to filter for milk overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description:
+      'Specific end date to filter for mik overview data',
+    example: '2025-06-12',
   })
   @ApiOkResponse({
     description: 'List of all milk records',
@@ -113,8 +128,10 @@ export class MilkController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllMilkRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
-    return this.milkService.gettingAllMilkRecords(page,sortBy,filter,search);
+  async gettingAllMilkRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string[] | string , @Query('search') search:string, @Query('fromDate') fromDate: string,
+  @Query('toDate') toDate: string) {
+    const normalizedFilter = Array.isArray(filter) ? filter : filter ? [filter] : [];
+    return this.milkService.gettingAllMilkRecords(page,sortBy,normalizedFilter,search,fromDate,toDate);
   }
 
   //Fetching specific animal milk records

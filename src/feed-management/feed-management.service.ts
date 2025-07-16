@@ -157,7 +157,7 @@ export class FeedManagementService {
   async gettingAllFeedRecords(
     page: number,
     sortBy: string,
-    filter: string,
+    filter: string[],
     search: string,
   ) {
     try {
@@ -282,105 +282,85 @@ export class FeedManagementService {
         }
       }
 
-      if (filter) {
-        message = `Showing filtered data based on ${filter}`;
-        const session = filter.toUpperCase() as SelectedSession;
+      if (filter && Array.isArray(filter)) {
+        message = `Showing filtered data based on selected filters`;
 
-        const unit = filter.toUpperCase() as SelectedUnit;
+        const sessions: SelectedSession[] = [];
+        const units: SelectedUnit[] = [];
+        const types: CattleType[] = [];
+        const feedNameKeywords: string[] = [];
 
-        const type = filter.toUpperCase() as CattleType;
+        filter.forEach((f) => {
+          const upper = f.toUpperCase();
 
-        if (Object.values(SelectedSession).includes(session)) {
-          totalCount = await this.prisma.feedConsumption.count({
-            where: { session },
-          });
+          if (
+            Object.values(SelectedSession).includes(upper as SelectedSession)
+          ) {
+            sessions.push(upper as SelectedSession);
+          } else if (
+            Object.values(SelectedUnit).includes(upper as SelectedUnit)
+          ) {
+            units.push(upper as SelectedUnit);
+          } else if (Object.values(CattleType).includes(upper as CattleType)) {
+            types.push(upper as CattleType);
+          } else {
+            feedNameKeywords.push(f); // For AND keyword search
+          }
+        });
 
-          allFeedRecords = await this.prisma.feedConsumption.findMany({
-            where: { session },
-            orderBy: { date: 'desc' },
-            select: {
-              cattle: {
-                select: {
-                  image1: true,
-                  type: true,
-                  cattleName: true,
-                },
-              },
-              id: true,
-              feedName: true,
-              session: true,
-              date: true,
-              unit: true,
-              quantity: true,
+        const where:any = {
+          AND: [],
+        };
+
+        if (sessions.length > 0) {
+          where.AND.push({ session: { in: sessions } });
+        }
+
+        if (units.length > 0) {
+          where.AND.push({ unit: { in: units } });
+        }
+
+        if (types.length > 0) {
+          where.AND.push({
+            cattle: {
+              type: { in: types },
             },
-            skip,
-            take: limit,
           });
         }
 
-        if (Object.values(SelectedUnit).includes(unit)) {
-          totalCount = await this.prisma.feedConsumption.count({
-            where: { unit: unit },
+        // AND: feedName must contain all keywords
+        feedNameKeywords.forEach((keyword) => {
+          where.AND.push({
+            feedName: {
+              contains: keyword,
+              mode: 'insensitive',
+            },
           });
+        });
 
-          allFeedRecords = await this.prisma.feedConsumption.findMany({
-            where: { unit: unit },
-            orderBy: { date: 'desc' },
-            select: {
-              cattle: {
-                select: {
-                  image1: true,
-                  type: true,
-                  cattleName: true,
-                },
-              },
-              id: true,
-              feedName: true,
-              session: true,
-              date: true,
-              unit: true,
-              quantity: true,
-            },
-            skip,
-            take: limit,
-          });
-        }
+        totalCount = await this.prisma.feedConsumption.count({ where });
 
-        if (Object.values(CattleType).includes(type)) {
-          totalCount = await this.prisma.feedConsumption.count({
-            where: {
-              cattle: {
-                type: type,
+        allFeedRecords = await this.prisma.feedConsumption.findMany({
+          where,
+          orderBy: { date: 'desc' },
+          select: {
+            cattle: {
+              select: {
+                image1: true,
+                type: true,
+                cattleName: true,
               },
             },
-          });
-
-          allFeedRecords = await this.prisma.feedConsumption.findMany({
-            where: {
-              cattle: {
-                type: type,
-              },
-            },
-            orderBy: { date: 'desc' },
-            select: {
-              cattle: {
-                select: {
-                  image1: true,
-                  type: true,
-                  cattleName: true,
-                },
-              },
-              id: true,
-              feedName: true,
-              session: true,
-              date: true,
-              unit: true,
-              quantity: true,
-            },
-            skip,
-            take: limit,
-          });
-        }
+            id: true,
+            feedName: true,
+            session: true,
+            date: true,
+            unit: true,
+            quantity: true,
+          },
+          skip,
+          take: limit,
+        });
       }
 
       if (search) {

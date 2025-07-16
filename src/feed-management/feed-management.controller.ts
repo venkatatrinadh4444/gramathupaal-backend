@@ -132,10 +132,11 @@ export class FeedManagementController {
   })
   @ApiQuery({
     name: 'filter',
+    isArray:true,
     required: false,
     description:
-      'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT","KG","PIECES","PACKETS","MORNING","AFTERNOON","EVENING")',
-    example: 'COW',
+      'Query string for filtering data based on breeds and cattle type,feed name,sesssion and units',
+      example: ['COW', 'Gross'],
   })
   @ApiQuery({
     name: 'search',
@@ -143,6 +144,20 @@ export class FeedManagementController {
     description:
       'Search string for filtering data based on feed name',
     example: 'Green Fodder',
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description:
+      'Specific start date to filter for feed management overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description:
+      'Specific end date to filter for feed management overview data',
+    example: '2025-06-12',
   })
   @ApiOkResponse({
     description: 'List of all feed records',
@@ -161,8 +176,9 @@ export class FeedManagementController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllFeedRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
-    return this.feedManagementService.gettingAllFeedRecords(page,sortBy,filter,search);
+  async gettingAllFeedRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string[] , @Query('search') search:string) {
+    const normalizedFilter = Array.isArray(filter) ? filter : filter ? [filter] : [];
+    return this.feedManagementService.gettingAllFeedRecords(page,sortBy,normalizedFilter,search);
   }
 
   //Edit a specific consumption record

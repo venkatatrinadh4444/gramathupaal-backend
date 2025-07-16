@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Milk" ALTER COLUMN "morningMilk" DROP NOT NULL,
+ALTER COLUMN "afternoonMilk" DROP NOT NULL,
+ALTER COLUMN "eveningMilk" DROP NOT NULL;

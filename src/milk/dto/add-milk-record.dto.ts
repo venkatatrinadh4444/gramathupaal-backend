@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { SelectedMilkGrade } from "@prisma/client";
-import { IsDateString, IsDecimal, IsEnum, IsNotEmpty, Matches } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsDateString, IsDecimal, IsEnum, IsNotEmpty, IsOptional, Matches } from "class-validator";
 
 
 export class AddMilkRecordDto {
@@ -19,19 +20,22 @@ export class AddMilkRecordDto {
    @IsEnum(SelectedMilkGrade)
    milkGrade:SelectedMilkGrade
 
+   @IsOptional()
+   @Transform(({ value }) => value === '' ? undefined : value)
    @ApiProperty({example:"10.4",description:'Enter the value of the morning milk in litres'})
-   @IsNotEmpty()
    @IsDecimal()
    morningMilk:string
 
+   @IsOptional()
+   @Transform(({ value }) => value === '' ? undefined : value)
    @ApiProperty({example:"8.4",description:'Enter the value of the afternoon milk in litres'})
-   @IsNotEmpty()
    @IsDecimal()
-   afternoonMilk:string
+   afternoonMilk?:string
 
+   @IsOptional()
+   @Transform(({ value }) => value === '' ? undefined : value)
    @ApiProperty({example:"5.4",description:'Enter the value of the evening milk in litres'})
-   @IsNotEmpty()
    @IsDecimal()
-   eveningMilk:string
+   eveningMilk?:string
 
 } 

@@ -143,9 +143,9 @@ model Milk {
   id Int @id @default(autoincrement())
   date DateTime
   milkGrade SelectedMilkGrade
-  morningMilk Decimal @db.Decimal(5,2)
-  afternoonMilk Decimal @db.Decimal(5,2)
-  eveningMilk Decimal @db.Decimal(5,2)
+  morningMilk Decimal? @db.Decimal(5,2)
+  afternoonMilk Decimal? @db.Decimal(5,2)
+  eveningMilk Decimal? @db.Decimal(5,2)
   cattleId String
   cattle Cattle @relation(fields: [cattleId],references: [cattleName],onDelete: Cascade)
   createdAt DateTime @default(now())

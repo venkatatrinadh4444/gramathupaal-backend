@@ -15,7 +15,7 @@ export class MilkService {
   //Add new milk record
   async addNewMilkRecord(milkDto: AddMilkRecordDto, userId: number) {
     try {
-      const { cattleId, date, ...restOfValues } = milkDto;
+      const { cattleId, date, morningMilk,afternoonMilk,eveningMilk, milkGrade} = milkDto;
       (await this.prisma.cattle.findFirst({
         where: { cattleName: cattleId },
       })) ||
@@ -36,7 +36,10 @@ export class MilkService {
             },
           },
           date: new Date(date),
-          ...restOfValues,
+          morningMilk:morningMilk || 0.0,
+          afternoonMilk:afternoonMilk || 0.0,
+          eveningMilk:eveningMilk || 0.0,
+          milkGrade
         },
       });
 
@@ -50,8 +53,10 @@ export class MilkService {
   async gettingAllMilkRecords(
     page: number,
     sortBy: string,
-    filter: string,
+    filter: string[],
     search: string,
+    fromDate:string,
+    toDate:string
   ) {
     try {
       const skip = (page - 1) * 25;
@@ -185,48 +190,108 @@ export class MilkService {
         }
       }
 
-      if (filter) {
-        message = 'showing the filtered data';
-        switch (filter) {
-          case filter as CattleType:
-            if (!Object.values(CattleType).includes(filter as CattleType)) {
-              throw new BadRequestException('please enter a valid cattle type');
-            }
-            totalCount = await this.prisma.milk.count({
-              where: {
-                cattle: {
-                  type: filter,
-                },
-              },
-            });
-            allRecords = await this.prisma.milk.findMany({
-              where: {
-                cattle: {
-                  type: filter,
-                },
-              },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                date: true,
-                morningMilk: true,
-                afternoonMilk: true,
-                eveningMilk: true,
-                milkGrade: true,
-              },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          default:
-            throw new BadRequestException('Please enter a valid query value');
+      if (filter && Array.isArray(filter)) {
+        message = 'Showing the filtered data based on selected filters';
+      
+        const types: CattleType[] = [];
+        const grades: SelectedMilkGrade[] = [];
+      
+        filter.forEach((f) => {
+          const upper = f.toUpperCase();
+      
+          if (Object.values(CattleType).includes(upper as CattleType)) {
+            types.push(upper as CattleType);
+          }
+      
+          if (Object.values(SelectedMilkGrade).includes(f as SelectedMilkGrade)) {
+            grades.push(f as SelectedMilkGrade);
+          }
+        });
+      
+        const where:any = {
+          AND: [],
+        };
+      
+        if (types.length > 0) {
+          where.AND.push({
+            cattle: {
+              type: { in: types },
+            },
+          });
         }
+      
+        if (grades.length > 0) {
+          where.AND.push({
+            milkGrade: { in: grades },
+          });
+        }
+      
+        // Count total matching records
+        totalCount = await this.prisma.milk.count({ where });
+      
+        // Fetch paginated results
+        allRecords = await this.prisma.milk.findMany({
+          where,
+          select: {
+            cattle: {
+              select: {
+                image1: true,
+                type: true,
+                cattleName: true,
+              },
+            },
+            id: true,
+            date: true,
+            morningMilk: true,
+            afternoonMilk: true,
+            eveningMilk: true,
+            milkGrade: true,
+          },
+          skip,
+          take: limit,
+        });
+      }
+
+      if(fromDate && toDate) {
+        message = `Showing the data based on the ${fromDate} to ${toDate}`
+        const startDate = new Date(fromDate)
+        startDate.setHours(0,0,0,0)
+        const endDate = new Date(toDate)
+        endDate.setHours(23,59,59,999)
+
+        totalCount = await this.prisma.milk.count({
+          where: {
+            date:{
+              gte:startDate,
+              lte:endDate
+            }
+          },
+        });
+        allRecords = await this.prisma.milk.findMany({
+          where: {
+            date:{
+              gte:startDate,
+              lte:endDate
+            }
+          },
+          select: {
+            cattle: {
+              select: {
+                image1: true,
+                type: true,
+                cattleName: true,
+              },
+            },
+            id: true,
+            date: true,
+            morningMilk: true,
+            afternoonMilk: true,
+            eveningMilk: true,
+            milkGrade: true,
+          },
+          skip: skip,
+          take: limit,
+        });
       }
 
       if (search) {

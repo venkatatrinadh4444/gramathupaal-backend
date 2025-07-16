@@ -118,18 +118,35 @@ export class AnimalController {
   })
   @ApiQuery({
     name: 'filter',
+    isArray:true,
     required: false,
     description:
-      'Query string for filtering data based on breeds',
-    example: 'KARAMPASU',
+      'Query string for filtering data based on breeds and cattle type and health status',
+      example: ['COW', 'GOAT', 'KARAMPASU'],
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description:
+      'Specific start date to filter the cattle overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description:
+      'Specific end date to filter top cattle overview data',
+    example: '2025-06-12',
   })
   @ApiOkResponse({
     description: 'List of all cattle',
     type: [AddAnimalDto],
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access' })
-  async showAllCattles(@Param('page',ParseIntPipe) page:number,@Query('sortBy') sortBy:string , @Query('filter') filter:string) {
-    return this.animalServie.gettingAllCattles(page,sortBy,filter);
+  async showAllCattles(@Param('page',ParseIntPipe) page:number,@Query('sortBy') sortBy:string , @Query('filter') filter:string[] | string , @Query('fromDate') fromDate: string,
+  @Query('toDate') toDate: string) {
+    const normalizedFilter = Array.isArray(filter) ? filter : filter ? [filter] : [];
+    return this.animalServie.gettingAllCattles(page,sortBy,normalizedFilter,fromDate,toDate);
   }
 
   //Getting all details of specific animal
@@ -433,6 +450,7 @@ export class AnimalController {
     return this.animalServie.getDashboardFeedStockRecords(query);
   }
 
+  //Adding a new calf
   @UseGuards(JwtAuthGuard)
   @Post('add-new-calf')
   @ApiOperation({ summary: 'Add a new calf record' })
@@ -443,6 +461,7 @@ export class AnimalController {
     return this.animalServie.addNewCalf(calfDto);
   }
 
+  // Showing the list all calfs
   @UseGuards(JwtAuthGuard)
   @Get('get-all-calfs/:cattleName')
   @ApiOperation({ summary: 'Get all calf records by parent cattle name' })
@@ -455,4 +474,27 @@ export class AnimalController {
     }
     return this.animalServie.allCalfDetails(cattleName);
   }
+
+  // Creating a dynamic id for cattle name
+  @UseGuards(JwtAuthGuard)
+  @Get('generate-cattleId/:type')
+  @ApiOperation({ summary: 'Generating a unique cattle id'})
+  @ApiParam({ name: 'type', required: true, example: 'COW', description: 'Name of the cattle type' })
+  @ApiOkResponse({ description: 'New cattle id created successfully' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized access - JWT token required' })
+  async generateCattleId(@Param('type') type:string) {
+    return this.animalServie.generateCattleId(type)
+  }
+
+  //Creating a dynamic id for calf
+  @UseGuards(JwtAuthGuard)
+  @Get('generate-calfId/:type')
+  @ApiOperation({ summary: 'Generating a unique calf id'})
+  @ApiParam({ name: 'type', required: true, example: 'COW', description: 'Name of the cattle type' })
+  @ApiOkResponse({ description: 'New calf id created successfully' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized access - JWT token required' })
+  async generateCalfId(@Param('type') type:string) {
+    return this.animalServie.generateCalfId(type)
+  }
+
 }
