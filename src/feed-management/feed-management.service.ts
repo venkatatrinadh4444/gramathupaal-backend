@@ -159,6 +159,8 @@ export class FeedManagementService {
     sortBy: string,
     filter: string[],
     search: string,
+    fromDate:string,
+    toDate:string
   ) {
     try {
       const skip = (page - 1) * 25;
@@ -430,6 +432,49 @@ export class FeedManagementService {
             quantity: true,
           },
           skip,
+          take: limit,
+        });
+      }
+
+      if(fromDate && toDate) {
+        message = `Showing the data based on ${fromDate} to ${toDate}`
+        const startDate = new Date(fromDate)
+        startDate.setHours(0,0,0,0)
+        const endDate = new Date(toDate)
+        endDate.setHours(23,59,59,999)
+
+        totalCount = await this.prisma.feedConsumption.count({
+          where:{
+            date:{
+              gte:startDate,
+              lte:endDate
+            }
+          }
+        });
+        allFeedRecords = await this.prisma.feedConsumption.findMany({
+          where:{
+            date:{
+              gte:startDate,
+              lte:endDate
+            }
+          },
+          orderBy: { date: 'desc' },
+          select: {
+            cattle: {
+              select: {
+                image1: true,
+                type: true,
+                cattleName: true,
+              },
+            },
+            id: true,
+            feedName: true,
+            session: true,
+            date: true,
+            unit: true,
+            quantity: true,
+          },
+          skip: skip,
           take: limit,
         });
       }

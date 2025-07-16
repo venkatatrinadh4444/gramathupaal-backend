@@ -57,6 +57,8 @@ export class VaccinationService {
     sortBy: string,
     filter: string,
     search: string,
+    fromDate:string,
+    toDate:string
   ) {
     try {
       const skip = (page - 1) * 25;
@@ -282,6 +284,49 @@ export class VaccinationService {
         });
       }
 
+      if(fromDate && toDate) {
+        message = `Showing the data based on the ${fromDate} to ${toDate}`
+        const startDate = new Date(fromDate)
+        startDate.setHours(0,0,0,0)
+        const endDate = new Date(toDate)
+        endDate.setHours(23,59,59,999)
+        totalCount = await this.prisma.vaccination.count({
+          where:{
+            date:{
+              gte:startDate,
+              lte:endDate
+            }
+          }
+        });
+        allReports = await this.prisma.vaccination.findMany({
+          where:{
+            date:{
+              gte:startDate,
+              lte:endDate
+            }
+          },
+          orderBy: { date: 'desc' },
+          select: {
+            id: true,
+            date: true,
+            name: true,
+            notes: true,
+            doctorName: true,
+            doctorPhone: true,
+            cattle: {
+              select: {
+                image1: true,
+                active: true,
+                cattleName: true,
+                type: true,
+              },
+            },
+          },
+          skip: skip,
+          take: limit,
+        });
+      }
+
       const totalIllnessCount = await this.prisma.checkup.count({
         where: {
           cattle: {
@@ -289,6 +334,7 @@ export class VaccinationService {
           },
         },
       });
+
       const checkupDashboard = {
         allReports,
         totalCheckups: allReports.length,
@@ -296,6 +342,7 @@ export class VaccinationService {
         totalRecordCount: totalCount,
         totalPages: Math.ceil(totalCount/25)
       };
+      
       return {
         message,
         checkupDashboard,

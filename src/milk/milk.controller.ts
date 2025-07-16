@@ -23,7 +23,7 @@ import {
   ApiUnauthorizedResponse,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard'
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AddMilkRecordDto } from './dto/add-milk-record.dto';
 import { MilkService } from './milk.service';
 import { matches } from 'class-validator';
@@ -55,9 +55,12 @@ export class MilkController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async addNewMilkRecord(@Body() milkDto: AddMilkRecordDto,@Request() req:any) {
-    const userId=req?.user?.id
-    return this.milkService.addNewMilkRecord(milkDto,userId);
+  async addNewMilkRecord(
+    @Body() milkDto: AddMilkRecordDto,
+    @Request() req: any,
+  ) {
+    const userId = req?.user?.id;
+    return this.milkService.addNewMilkRecord(milkDto, userId);
   }
 
   //Fetching all milk records
@@ -79,31 +82,28 @@ export class MilkController {
   })
   @ApiQuery({
     name: 'filter',
-    isArray:true,
+    isArray: true,
     required: false,
     description:
       'Query string for filtering data based on breeds and cattle type and milk grade',
-      example: ['COW', 'A1'],
+    example: ['COW', 'A1'],
   })
   @ApiQuery({
     name: 'search',
     required: false,
-    description:
-      'Search string for filtering data based on cattle name',
+    description: 'Search string for filtering data based on cattle name',
     example: 'kaveri-004',
   })
   @ApiQuery({
     name: 'fromDate',
     required: false,
-    description:
-      'Specific start date to filter for milk overview data',
+    description: 'Specific start date to filter for milk overview data',
     example: '2025-06-12',
   })
   @ApiQuery({
     name: 'toDate',
     required: false,
-    description:
-      'Specific end date to filter for mik overview data',
+    description: 'Specific end date to filter for mik overview data',
     example: '2025-06-12',
   })
   @ApiOkResponse({
@@ -128,10 +128,27 @@ export class MilkController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllMilkRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string[] | string , @Query('search') search:string, @Query('fromDate') fromDate: string,
-  @Query('toDate') toDate: string) {
-    const normalizedFilter = Array.isArray(filter) ? filter : filter ? [filter] : [];
-    return this.milkService.gettingAllMilkRecords(page,sortBy,normalizedFilter,search,fromDate,toDate);
+  async gettingAllMilkRecords(
+    @Param('page', ParseIntPipe) page: number,
+    @Query('sortBy') sortBy: string,
+    @Query('filter') filter: string[] | string,
+    @Query('search') search: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    const normalizedFilter = Array.isArray(filter)
+      ? filter
+      : filter
+        ? [filter]
+        : [];
+    return this.milkService.gettingAllMilkRecords(
+      page,
+      sortBy,
+      normalizedFilter,
+      search,
+      fromDate,
+      toDate,
+    );
   }
 
   //Fetching specific animal milk records
@@ -200,7 +217,7 @@ export class MilkController {
   ) {
     return this.milkService.updateParticularMilkRecord(id, milkDto);
   }
-  
+
   //Delete specific milk record
   @UseGuards(JwtAuthGuard)
   @Delete('delete-specific-animal-milk-records/:id')
@@ -227,7 +244,7 @@ export class MilkController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async delete(@Param('id',ParseIntPipe) id:number) {
+  async delete(@Param('id', ParseIntPipe) id: number) {
     return this.milkService.deleteParticularAnimalMilkRecords(id);
   }
 
@@ -243,7 +260,8 @@ export class MilkController {
     name: 'session',
     required: false,
     example: 'Morning',
-    description: 'Optional session filter (e.g., Overall,MORNING, AFTERNOON, EVENING)',
+    description:
+      'Optional session filter (e.g., Overall,MORNING, AFTERNOON, EVENING)',
   })
   @ApiQuery({
     name: 'fromDate',
@@ -260,9 +278,9 @@ export class MilkController {
   async gettingMilkDashboardData(
     @Query('session') session: string,
     @Query('fromDate') fromDate: string,
-    @Query('toDate') toDate: string
+    @Query('toDate') toDate: string,
   ) {
-    return this.milkService.dashboardData(session, fromDate,toDate);
+    return this.milkService.dashboardData(session, fromDate, toDate);
   }
 
   // Get milk records by a specific date range
@@ -294,9 +312,13 @@ export class MilkController {
   async gettingDateBasedMilkRecords(
     @Param('cattleName') cattleName: string,
     @Query('fromDate') fromDate: string,
-    @Query('toDate') toDate: string
+    @Query('toDate') toDate: string,
   ) {
-    return this.milkService.getMilkRecordsForSpecificDate(cattleName, fromDate,toDate);
+    return this.milkService.getMilkRecordsForSpecificDate(
+      cattleName,
+      fromDate,
+      toDate,
+    );
   }
 
   //Fetch monthly wise milk production data
@@ -314,7 +336,7 @@ export class MilkController {
     required: true,
     description: 'Session to filter monthly milk production records',
     example: 'Overall',
-    enum:["Overall","Morning","Afternoon","Evening"]
+    enum: ['Overall', 'Morning', 'Afternoon', 'Evening'],
   })
   async getAllRecordsBasedOnMonth(@Query('session') session: string) {
     return this.milkService.getMonthlyMilkProductionTable(session);

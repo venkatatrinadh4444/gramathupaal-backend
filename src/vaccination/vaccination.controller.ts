@@ -89,6 +89,18 @@ export class VaccinationController {
       'Search string for filtering data based on cattle name, vaccination name',
     example: 'kaveri-004',
   })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description: 'Specific start date to filter for milk overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description: 'Specific end date to filter for mik overview data',
+    example: '2025-06-12',
+  })
   @ApiOkResponse({
     description: 'All vaccination records retrieved successfully',
   })
@@ -98,12 +110,16 @@ export class VaccinationController {
     @Query('sortBy') sortBy: string,
     @Query('filter') filter: string,
     @Query('search') search: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
   ) {
     return this.vaccinationService.fetchingAllVaccinationRecords(
       page,
       sortBy,
       filter,
       search,
+      fromDate,
+      toDate
     );
   }
 

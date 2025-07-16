@@ -136,7 +136,7 @@ export class FeedManagementController {
     required: false,
     description:
       'Query string for filtering data based on breeds and cattle type,feed name,sesssion and units',
-      example: ['COW', 'Gross'],
+    example: ['COW', 'Gross','Morning'],
   })
   @ApiQuery({
     name: 'search',
@@ -176,9 +176,10 @@ export class FeedManagementController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllFeedRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string[] , @Query('search') search:string) {
+  async gettingAllFeedRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string[] , @Query('search') search:string,@Query('fromDate') fromDate: string,
+  @Query('toDate') toDate: string) {
     const normalizedFilter = Array.isArray(filter) ? filter : filter ? [filter] : [];
-    return this.feedManagementService.gettingAllFeedRecords(page,sortBy,normalizedFilter,search);
+    return this.feedManagementService.gettingAllFeedRecords(page,sortBy,normalizedFilter,search,fromDate,toDate);
   }
 
   //Edit a specific consumption record

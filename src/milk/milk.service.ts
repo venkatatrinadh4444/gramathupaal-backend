@@ -232,6 +232,7 @@ export class MilkService {
         // Fetch paginated results
         allRecords = await this.prisma.milk.findMany({
           where,
+          orderBy:{date:'desc'},
           select: {
             cattle: {
               select: {
@@ -274,6 +275,7 @@ export class MilkService {
               lte:endDate
             }
           },
+          orderBy:{date:'desc'},
           select: {
             cattle: {
               select: {
@@ -328,6 +330,7 @@ export class MilkService {
             }
             ]
           },
+          orderBy:{date:'desc'},
           select: {
             cattle: {
               select: {
