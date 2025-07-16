@@ -86,110 +86,6 @@ export class MilkService {
         take: limit,
       });
 
-      if (sortBy) {
-        message = 'showing the sorted data';
-        switch (sortBy) {
-          case 'name-asc':
-            allRecords = await this.prisma.milk.findMany({
-              orderBy: {
-                cattle: {
-                  cattleName: 'asc',
-                },
-              },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                date: true,
-                morningMilk: true,
-                afternoonMilk: true,
-                eveningMilk: true,
-                milkGrade: true,
-              },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'name-desc':
-            allRecords = await this.prisma.milk.findMany({
-              orderBy: {
-                cattle: {
-                  cattleName: 'desc',
-                },
-              },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                date: true,
-                morningMilk: true,
-                afternoonMilk: true,
-                eveningMilk: true,
-                milkGrade: true,
-              },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'newest':
-            allRecords = await this.prisma.milk.findMany({
-              orderBy: { date: 'desc' },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                date: true,
-                morningMilk: true,
-                afternoonMilk: true,
-                eveningMilk: true,
-                milkGrade: true,
-              },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'oldest':
-            allRecords = await this.prisma.milk.findMany({
-              orderBy: { date: 'asc' },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                date: true,
-                morningMilk: true,
-                afternoonMilk: true,
-                eveningMilk: true,
-                milkGrade: true,
-              },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          default:
-            throw new BadRequestException('Please enter a valid query value');
-        }
-      }
-
       if (filter && Array.isArray(filter)) {
         message = 'Showing the filtered data based on selected filters';
       
@@ -294,6 +190,110 @@ export class MilkService {
           skip: skip,
           take: limit,
         });
+      }
+      
+      if (sortBy) {
+        message = 'showing the sorted data';
+        switch (sortBy) {
+          case 'name-asc':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: {
+                cattle: {
+                  cattleName: 'asc',
+                },
+              },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'name-desc':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: {
+                cattle: {
+                  cattleName: 'desc',
+                },
+              },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'newest':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: { date: 'desc' },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          case 'oldest':
+            allRecords = await this.prisma.milk.findMany({
+              orderBy: { date: 'asc' },
+              select: {
+                cattle: {
+                  select: {
+                    image1: true,
+                    type: true,
+                    cattleName: true,
+                  },
+                },
+                id: true,
+                date: true,
+                morningMilk: true,
+                afternoonMilk: true,
+                eveningMilk: true,
+                milkGrade: true,
+              },
+              skip: skip,
+              take: limit,
+            });
+            break;
+          default:
+            throw new BadRequestException('Please enter a valid query value');
+        }
       }
 
       if (search) {

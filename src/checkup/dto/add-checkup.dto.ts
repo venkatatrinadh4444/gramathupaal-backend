@@ -59,7 +59,7 @@ export class CreateCheckupDto {
   })
   @IsNotEmpty()
   @IsString()
-  @Matches(/^[A-Z][a-zA-Z]+-\d+$/, {
+  @Matches(/^[a-zA-Z]+-\d+$/, {
     message: 'cattleName must follow the format Name-XX (e.g., Kaveri-02)',
   })
   cattleName: string;
