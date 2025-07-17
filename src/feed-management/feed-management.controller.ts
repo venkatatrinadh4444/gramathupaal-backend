@@ -135,7 +135,7 @@ export class FeedManagementController {
     isArray:true,
     required: false,
     description:
-      'Query string for filtering data based on breeds and cattle type,feed name,sesssion and units',
+      'Query string for filtering data based on breeds and cattle type("COW","BUFFALO","GOAT"),feed name,sesssion("MORNING","AFTERNOON","EVENING") and units("KG","UNITS","PACKETS")',
     example: ['COW', 'Gross','Morning'],
   })
   @ApiQuery({

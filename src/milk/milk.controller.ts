@@ -85,7 +85,7 @@ export class MilkController {
     isArray: true,
     required: false,
     description:
-      'Query string for filtering data based on breeds and cattle type and milk grade',
+      'Query string for filtering data based on breeds and cattle type("COW","BUFFALO","GOAT") and milk grade("A1","A2","OneCowA1","OneCowA2")',
     example: ['COW', 'A1'],
   })
   @ApiQuery({

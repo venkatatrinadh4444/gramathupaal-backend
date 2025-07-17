@@ -121,8 +121,8 @@ export class AnimalController {
     isArray:true,
     required: false,
     description:
-      'Query string for filtering data based on breeds and cattle type and health status',
-      example: ['COW', 'GOAT', 'KARAMPASU'],
+      'Query string for filtering data based on breeds and cattle type("COW","BUFFALO","GOAT") and health status("HEALTHY","INJURED")',
+      example: ['COW', 'HEALTHY', 'KARAMPASU'],
   })
   @ApiQuery({
     name: 'fromDate',
