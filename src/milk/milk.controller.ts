@@ -74,6 +74,12 @@ export class MilkController {
     description: 'Enter a valid animal name (e.g., 1)',
   })
   @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search string for filtering data based on cattle name',
+    example: 'kaveri-004',
+  })
+  @ApiQuery({
     name: 'sortBy',
     required: false,
     description:
@@ -87,12 +93,6 @@ export class MilkController {
     description:
       'Query string for filtering data based on breeds and cattle type("COW","BUFFALO","GOAT") and milk grade("A1","A2","OneCowA1","OneCowA2")',
     example: ['COW', 'A1'],
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search string for filtering data based on cattle name',
-    example: 'kaveri-004',
   })
   @ApiQuery({
     name: 'fromDate',

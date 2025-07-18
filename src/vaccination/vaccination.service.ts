@@ -55,10 +55,10 @@ export class VaccinationService {
   async fetchingAllVaccinationRecords(
     page: number,
     sortBy: string,
-    filter: string,
+    filter: string[],
     search: string,
-    fromDate:string,
-    toDate:string
+    fromDate: string,
+    toDate: string,
   ) {
     try {
       const skip = (page - 1) * 25;
@@ -185,46 +185,6 @@ export class VaccinationService {
         }
       }
 
-      if (filter) {
-        message = `Showing the filtered records based on ${filter}`;
-        const type = filter.toUpperCase() as CattleType;
-        if (Object.values(CattleType).includes(type)) {
-          totalCount = await this.prisma.vaccination.count({
-            where: {
-              cattle: {
-                type: type,
-              },
-            },
-          });
-          allReports = await this.prisma.vaccination.findMany({
-            where: {
-              cattle: {
-                type: type,
-              },
-            },
-            orderBy: { date: 'desc' },
-            select: {
-              id: true,
-              date: true,
-              name: true,
-              notes: true,
-              doctorName: true,
-              doctorPhone: true,
-              cattle: {
-                select: {
-                  image1: true,
-                  active: true,
-                  cattleName: true,
-                  type: true,
-                },
-              },
-            },
-            skip: skip,
-            take: limit,
-          });
-        }
-      }
-
       if (search) {
         message = `Showing the searched records based on ${search}`;
         totalCount = await this.prisma.vaccination.count({
@@ -284,48 +244,162 @@ export class VaccinationService {
         });
       }
 
-      if(fromDate && toDate) {
-        message = `Showing the data based on the ${fromDate} to ${toDate}`
-        const startDate = new Date(fromDate)
-        startDate.setHours(0,0,0,0)
-        const endDate = new Date(toDate)
-        endDate.setHours(23,59,59,999)
-        totalCount = await this.prisma.vaccination.count({
-          where:{
-            date:{
-              gte:startDate,
-              lte:endDate
-            }
+      // if (filter) {
+      //   message = `Showing the filtered records based on ${filter}`;
+      //   const type = filter.toUpperCase() as CattleType;
+      //   if (Object.values(CattleType).includes(type)) {
+      //     totalCount = await this.prisma.vaccination.count({
+      //       where: {
+      //         cattle: {
+      //           type: type,
+      //         },
+      //       },
+      //     });
+      //     allReports = await this.prisma.vaccination.findMany({
+      //       where: {
+      //         cattle: {
+      //           type: type,
+      //         },
+      //       },
+      //       orderBy: { date: 'desc' },
+      //       select: {
+      //         id: true,
+      //         date: true,
+      //         name: true,
+      //         notes: true,
+      //         doctorName: true,
+      //         doctorPhone: true,
+      //         cattle: {
+      //           select: {
+      //             image1: true,
+      //             active: true,
+      //             cattleName: true,
+      //             type: true,
+      //           },
+      //         },
+      //       },
+      //       skip: skip,
+      //       take: limit,
+      //     });
+      //   }
+      // }
+
+      // if(fromDate && toDate) {
+      //   message = `Showing the data based on the ${fromDate} to ${toDate}`
+      //   const startDate = new Date(fromDate)
+      //   startDate.setHours(0,0,0,0)
+      //   const endDate = new Date(toDate)
+      //   endDate.setHours(23,59,59,999)
+      //   totalCount = await this.prisma.vaccination.count({
+      //     where:{
+      //       date:{
+      //         gte:startDate,
+      //         lte:endDate
+      //       }
+      //     }
+      //   });
+      //   allReports = await this.prisma.vaccination.findMany({
+      //     where:{
+      //       date:{
+      //         gte:startDate,
+      //         lte:endDate
+      //       }
+      //     },
+      //     orderBy: { date: 'desc' },
+      //     select: {
+      //       id: true,
+      //       date: true,
+      //       name: true,
+      //       notes: true,
+      //       doctorName: true,
+      //       doctorPhone: true,
+      //       cattle: {
+      //         select: {
+      //           image1: true,
+      //           active: true,
+      //           cattleName: true,
+      //           type: true,
+      //         },
+      //       },
+      //     },
+      //     skip: skip,
+      //     take: limit,
+      //   });
+      // }
+
+      const where: any = {};
+
+      // Filter logic
+      const types: CattleType[] = [];
+
+      if (filter && Array.isArray(filter)) {
+        filter.forEach((f) => {
+          const upper = f.toUpperCase();
+          if (Object.values(CattleType).includes(upper as CattleType)) {
+            types.push(upper as CattleType);
           }
         });
-        allReports = await this.prisma.vaccination.findMany({
-          where:{
-            date:{
-              gte:startDate,
-              lte:endDate
-            }
-          },
-          orderBy: { date: 'desc' },
-          select: {
-            id: true,
-            date: true,
-            name: true,
-            notes: true,
-            doctorName: true,
-            doctorPhone: true,
-            cattle: {
-              select: {
-                image1: true,
-                active: true,
-                cattleName: true,
-                type: true,
-              },
+        console.log(types)
+        if (types.length > 0) {
+          where.cattle = {
+            ...(where.cattle || {}),
+            type: { in: types },
+          };
+        }
+      }
+
+      // Date range logic
+      if (fromDate && toDate) {
+        const startDate = new Date(fromDate);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(toDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        where.date = {
+          gte: startDate,
+          lte: endDate,
+        };
+      }
+
+      // Final message
+      if (Object.keys(where).length > 0) {
+        console.log(where)
+        message = 'Showing filtered vaccination records';
+        if (filter) {
+          if (Array.isArray(filter)) {
+            message += ` for ${filter.join(', ')}`;
+          } else {
+            message += ` for ${filter}`;
+          }
+        }
+        if (fromDate && toDate) message += ` between ${fromDate} and ${toDate}`;
+      }
+
+      // Final Prisma queries
+      totalCount = await this.prisma.vaccination.count({ where });
+
+      allReports = await this.prisma.vaccination.findMany({
+        where,
+        orderBy: { date: 'desc' },
+        select: {
+          id: true,
+          date: true,
+          name: true,
+          notes: true,
+          doctorName: true,
+          doctorPhone: true,
+          cattle: {
+            select: {
+              image1: true,
+              active: true,
+              cattleName: true,
+              type: true,
             },
           },
-          skip: skip,
-          take: limit,
-        });
-      }
+        },
+        skip,
+        take: limit,
+      });
 
       const totalIllnessCount = await this.prisma.checkup.count({
         where: {
@@ -340,9 +414,9 @@ export class VaccinationService {
         totalCheckups: allReports.length,
         totalIllnessCount: totalIllnessCount ?? 0,
         totalRecordCount: totalCount,
-        totalPages: Math.ceil(totalCount/25)
+        totalPages: Math.ceil(totalCount / 25),
       };
-      
+
       return {
         message,
         checkupDashboard,

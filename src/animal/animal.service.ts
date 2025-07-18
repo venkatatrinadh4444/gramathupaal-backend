@@ -104,7 +104,7 @@ export class AnimalService {
       const allCattles: any[] = [];
 
       if (sortBy) {
-        message = 'showing the sorted data';
+        message = `showing the sorted data based on ${sortBy}`;
         switch (sortBy) {
           case 'name-asc':
             allCattlesDetails = await this.prisma.cattle.findMany({
@@ -139,80 +139,61 @@ export class AnimalService {
         }
       }
 
+      const where: any = {};
+
+      // Filter parsing
+      const types: CattleType[] = [];
+      const breeds: CattleBreed[] = [];
+      const healthStatuses: HealthStatus[] = [];
+
       if (filter && Array.isArray(filter)) {
-        message = `Showing the filtered data based on selected filters`;
-      
-        const types: CattleType[] = [];
-        const breeds: CattleBreed[] = [];
-        const healthStatuses: HealthStatus[] = [];
-      
         filter.forEach((f) => {
           const upper = f.toUpperCase();
-      
           if (Object.values(CattleType).includes(upper as CattleType)) {
             types.push(upper as CattleType);
           }
-      
           if (Object.values(CattleBreed).includes(upper as CattleBreed)) {
             breeds.push(upper as CattleBreed);
           }
-      
           if (Object.values(HealthStatus).includes(upper as HealthStatus)) {
             healthStatuses.push(upper as HealthStatus);
           }
         });
-      
-        const where: any = {};
-      
-        if (types.length > 0) {
-          where.type = { in: types };
-        }
-      
-        if (breeds.length > 0) {
-          where.breed = { in: breeds };
-        }
-      
-        if (healthStatuses.length > 0) {
-          where.healthStatus = { in: healthStatuses };
-        }
-        
-        totalPages = await this.prisma.cattle.count({ where });
-      
-        allCattlesDetails = await this.prisma.cattle.findMany({
-          where,
-          orderBy: { farmEntryDate: 'desc' },
-          skip,
-          take: limit,
-        });
-      }   
 
+        if (types.length > 0) where.type = { in: types };
+        if (breeds.length > 0) where.breed = { in: breeds };
+        if (healthStatuses.length > 0)
+          where.healthStatus = { in: healthStatuses };
+      }
+
+      // Date range
       if (fromDate && toDate) {
-        message = `Showing the data based on ${fromDate} to ${toDate}`
         const startDate = new Date(fromDate);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(toDate);
         endDate.setHours(23, 59, 59, 999);
 
-        totalPages = await this.prisma.cattle.count({
-          where: {
-            farmEntryDate: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        });
-        allCattlesDetails = await this.prisma.cattle.findMany({
-          where: {
-            farmEntryDate: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-          orderBy: { farmEntryDate: 'desc' },
-          skip: skip,
-          take: limit,
-        });
+        where.farmEntryDate = {
+          gte: startDate,
+          lte: endDate,
+        };
       }
+
+      // Final message
+      if (Object.keys(where).length > 0) {
+        message = 'Showing filtered data based on selected filters';
+        if (fromDate && toDate) {
+          message += ` and date range ${fromDate} to ${toDate}`;
+        }
+      }
+
+      totalPages = await this.prisma.cattle.count({ where });
+      allCattlesDetails = await this.prisma.cattle.findMany({
+        where,
+        orderBy: { farmEntryDate: 'desc' },
+        skip,
+        take: limit,
+      });
 
       for (const eachCattle of allCattlesDetails) {
         const now = new Date();

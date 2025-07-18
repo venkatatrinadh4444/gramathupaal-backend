@@ -77,10 +77,11 @@ export class VaccinationController {
   })
   @ApiQuery({
     name: 'filter',
+    isArray:true,
     required: false,
     description:
       'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
-    example: 'COW',
+    example: ['COW','BUFFALO'],
   })
   @ApiQuery({
     name: 'search',
@@ -108,15 +109,20 @@ export class VaccinationController {
   async gettingAllVaccinationRecords(
     @Param('page', ParseIntPipe) page: number,
     @Query('sortBy') sortBy: string,
-    @Query('filter') filter: string,
+    @Query('filter') filter: string[],
     @Query('search') search: string,
     @Query('fromDate') fromDate: string,
     @Query('toDate') toDate: string,
   ) {
+    const normalizedFilter = Array.isArray(filter)
+      ? filter
+      : filter
+        ? [filter]
+        : [];
     return this.vaccinationService.fetchingAllVaccinationRecords(
       page,
       sortBy,
-      filter,
+      normalizedFilter,
       search,
       fromDate,
       toDate

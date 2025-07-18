@@ -154,139 +154,374 @@ export class FeedManagementService {
   }
 
   //Fetching all feed records
+  // async gettingAllFeedRecords(
+  //   page: number,
+  //   sortBy: string,
+  //   filter: string[],
+  //   search: string,
+  //   fromDate: string,
+  //   toDate: string,
+  // ) {
+  //   try {
+  //     const skip = (page - 1) * 25;
+  //     const limit = 25;
+  //     let message = 'Showing intial fetched data';
+  //     let totalCount = await this.prisma.feedConsumption.count();
+  //     let allFeedRecords = await this.prisma.feedConsumption.findMany({
+  //       orderBy: { date: 'desc' },
+  //       select: {
+  //         cattle: {
+  //           select: {
+  //             image1: true,
+  //             type: true,
+  //             cattleName: true,
+  //           },
+  //         },
+  //         id: true,
+  //         feedName: true,
+  //         session: true,
+  //         date: true,
+  //         unit: true,
+  //         quantity: true,
+  //       },
+  //       skip: skip,
+  //       take: limit,
+  //     });
+
+  //     if (search) {
+  //       message = `Showing the data based on the ${search} value`;
+  //       const possibleEnum = Object.values(SelectedSession).includes(
+  //         search.toUpperCase() as SelectedSession,
+  //       )
+  //         ? (search.toUpperCase() as SelectedSession)
+  //         : undefined;
+
+  //       totalCount = await this.prisma.feedConsumption.count({
+  //         where: {
+  //           OR: [
+  //             {
+  //               feedName: {
+  //                 contains: search,
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //             {
+  //               cattleName: {
+  //                 contains: search,
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //             {
+  //               session: possibleEnum && possibleEnum,
+  //             },
+  //           ],
+  //         },
+  //       });
+
+  //       allFeedRecords = await this.prisma.feedConsumption.findMany({
+  //         where: {
+  //           OR: [
+  //             {
+  //               feedName: {
+  //                 contains: search,
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //             {
+  //               cattleName: {
+  //                 contains: search,
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //             {
+  //               session: possibleEnum && possibleEnum,
+  //             },
+  //           ],
+  //         },
+  //         orderBy: { date: 'desc' },
+  //         select: {
+  //           cattle: {
+  //             select: {
+  //               image1: true,
+  //               type: true,
+  //               cattleName: true,
+  //             },
+  //           },
+  //           id: true,
+  //           feedName: true,
+  //           session: true,
+  //           date: true,
+  //           unit: true,
+  //           quantity: true,
+  //         },
+  //         skip,
+  //         take: limit,
+  //       });
+  //     }
+
+  //     if (sortBy) {
+  //       message = `Showing sorted data based on ${sortBy}`;
+  //       switch (sortBy) {
+  //         case 'name-asc':
+  //           allFeedRecords = await this.prisma.feedConsumption.findMany({
+  //             orderBy: { feedName: 'asc' },
+  //             select: {
+  //               cattle: {
+  //                 select: {
+  //                   image1: true,
+  //                   type: true,
+  //                   cattleName: true,
+  //                 },
+  //               },
+  //               id: true,
+  //               feedName: true,
+  //               session: true,
+  //               date: true,
+  //               unit: true,
+  //               quantity: true,
+  //             },
+  //             skip: skip,
+  //             take: limit,
+  //           });
+  //           break;
+  //         case 'name-desc':
+  //           allFeedRecords = await this.prisma.feedConsumption.findMany({
+  //             orderBy: { feedName: 'desc' },
+  //             select: {
+  //               cattle: {
+  //                 select: {
+  //                   image1: true,
+  //                   type: true,
+  //                   cattleName: true,
+  //                 },
+  //               },
+  //               id: true,
+  //               feedName: true,
+  //               session: true,
+  //               date: true,
+  //               unit: true,
+  //               quantity: true,
+  //             },
+  //             skip: skip,
+  //             take: limit,
+  //           });
+  //           break;
+  //         case 'newest':
+  //           allFeedRecords = await this.prisma.feedConsumption.findMany({
+  //             orderBy: { date: 'desc' },
+  //             select: {
+  //               cattle: {
+  //                 select: {
+  //                   image1: true,
+  //                   type: true,
+  //                   cattleName: true,
+  //                 },
+  //               },
+  //               id: true,
+  //               feedName: true,
+  //               session: true,
+  //               date: true,
+  //               unit: true,
+  //               quantity: true,
+  //             },
+  //             skip: skip,
+  //             take: limit,
+  //           });
+  //           break;
+  //         case 'oldest':
+  //           allFeedRecords = await this.prisma.feedConsumption.findMany({
+  //             orderBy: { feedName: 'asc' },
+  //             select: {
+  //               cattle: {
+  //                 select: {
+  //                   image1: true,
+  //                   type: true,
+  //                   cattleName: true,
+  //                 },
+  //               },
+  //               id: true,
+  //               feedName: true,
+  //               session: true,
+  //               date: true,
+  //               unit: true,
+  //               quantity: true,
+  //             },
+  //             skip: skip,
+  //             take: limit,
+  //           });
+  //           break;
+  //         default:
+  //           throw new BadRequestException('Please enter a valid query value');
+  //       }
+  //     }
+
+  //     if (
+  //       (fromDate && toDate) ||
+  //       (filter && Array.isArray(filter) && filter.length > 0)
+  //     ) {
+  //       const where: any = { AND: [] };
+  //       const sessions: SelectedSession[] = [];
+  //       const units: SelectedUnit[] = [];
+  //       const types: CattleType[] = [];
+  //       const feedNameKeywords: string[] = [];
+
+  //       // Parse filters
+  //       if (Array.isArray(filter)) {
+  //         filter.forEach((f) => {
+  //           const upper = f.toUpperCase();
+
+  //           if (
+  //             Object.values(SelectedSession).includes(upper as SelectedSession)
+  //           ) {
+  //             sessions.push(upper as SelectedSession);
+  //           } else if (
+  //             Object.values(SelectedUnit).includes(upper as SelectedUnit)
+  //           ) {
+  //             units.push(upper as SelectedUnit);
+  //           } else if (
+  //             Object.values(CattleType).includes(upper as CattleType)
+  //           ) {
+  //             types.push(upper as CattleType);
+  //           } else {
+  //             feedNameKeywords.push(f); // Treat as keyword for feedName
+  //           }
+  //         });
+  //       }
+
+  //       // Apply filter conditions
+  //       if (sessions.length > 0) {
+  //         where.AND.push({ session: { in: sessions } });
+  //       }
+
+  //       if (units.length > 0) {
+  //         where.AND.push({ unit: { in: units } });
+  //       }
+
+  //       if (types.length > 0) {
+  //         where.AND.push({
+  //           cattle: {
+  //             type: { in: types },
+  //           },
+  //         });
+  //       }
+
+  //       // Keyword search on feedName
+  //       feedNameKeywords.forEach((keyword) => {
+  //         where.AND.push({
+  //           feedName: {
+  //             contains: keyword,
+  //             mode: 'insensitive',
+  //           },
+  //         });
+  //       });
+
+  //       // Date range condition
+  //       if (fromDate && toDate) {
+  //         const startDate = new Date(fromDate);
+  //         startDate.setHours(0, 0, 0, 0);
+  //         const endDate = new Date(toDate);
+  //         endDate.setHours(23, 59, 59, 999);
+
+  //         where.AND.push({
+  //           date: {
+  //             gte: startDate,
+  //             lte: endDate,
+  //           },
+  //         });
+  //         message = `Showing the filtered data from ${fromDate} to ${toDate}`;
+  //       } else {
+  //         message = `Showing filtered data based on selected filters`;
+  //       }
+
+  //       // Final Prisma query
+  //       totalCount = await this.prisma.feedConsumption.count({ where });
+
+  //       allFeedRecords = await this.prisma.feedConsumption.findMany({
+  //         where,
+  //         orderBy: { date: 'desc' },
+  //         select: {
+  //           cattle: {
+  //             select: {
+  //               image1: true,
+  //               type: true,
+  //               cattleName: true,
+  //             },
+  //           },
+  //           id: true,
+  //           feedName: true,
+  //           session: true,
+  //           date: true,
+  //           unit: true,
+  //           quantity: true,
+  //         },
+  //         skip,
+  //         take: limit,
+  //       });
+  //     }
+
+  //     const feedManagementOverview = {
+  //       allFeedRecords,
+  //       totalCount: totalCount,
+  //       totalPages: Math.ceil(totalCount / 25),
+  //     };
+
+  //     return {
+  //       message,
+  //       feedManagementOverview,
+  //     };
+  //   } catch (err) {
+  //     catchBlock(err);
+  //   }
+  // }
+
   async gettingAllFeedRecords(
     page: number,
     sortBy: string,
     filter: string[],
     search: string,
-    fromDate:string,
-    toDate:string
+    fromDate: string,
+    toDate: string,
   ) {
     try {
       const skip = (page - 1) * 25;
       const limit = 25;
-      let message = 'Showing intial fetched data';
-      let totalCount = await this.prisma.feedConsumption.count();
-      let allFeedRecords = await this.prisma.feedConsumption.findMany({
-        orderBy: { date: 'desc' },
-        select: {
-          cattle: {
-            select: {
-              image1: true,
-              type: true,
-              cattleName: true,
-            },
-          },
-          id: true,
-          feedName: true,
-          session: true,
-          date: true,
-          unit: true,
-          quantity: true,
-        },
-        skip: skip,
-        take: limit,
-      });
+      let message = 'Showing initial fetched data';
 
-      if (sortBy) {
-        message = `Showing sorted data based on ${sortBy}`;
-        switch (sortBy) {
-          case 'name-asc':
-            allFeedRecords = await this.prisma.feedConsumption.findMany({
-              orderBy: { feedName: 'asc' },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                feedName: true,
-                session: true,
-                date: true,
-                unit: true,
-                quantity: true,
+      const where: any = { AND: [] };
+
+      // Search keyword logic
+      if (search) {
+        message = `Showing the data based on the ${search} value`;
+
+        const possibleEnum = Object.values(SelectedSession).includes(
+          search.toUpperCase() as SelectedSession,
+        )
+          ? (search.toUpperCase() as SelectedSession)
+          : undefined;
+
+        where.AND.push({
+          OR: [
+            {
+              feedName: {
+                contains: search,
+                mode: 'insensitive',
               },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'name-desc':
-            allFeedRecords = await this.prisma.feedConsumption.findMany({
-              orderBy: { feedName: 'desc' },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
+            },
+            {
+              cattle: {
+                cattleName: {
+                  contains: search,
+                  mode: 'insensitive',
                 },
-                id: true,
-                feedName: true,
-                session: true,
-                date: true,
-                unit: true,
-                quantity: true,
               },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'newest':
-            allFeedRecords = await this.prisma.feedConsumption.findMany({
-              orderBy: { date: 'desc' },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                feedName: true,
-                session: true,
-                date: true,
-                unit: true,
-                quantity: true,
-              },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'oldest':
-            allFeedRecords = await this.prisma.feedConsumption.findMany({
-              orderBy: { feedName: 'asc' },
-              select: {
-                cattle: {
-                  select: {
-                    image1: true,
-                    type: true,
-                    cattleName: true,
-                  },
-                },
-                id: true,
-                feedName: true,
-                session: true,
-                date: true,
-                unit: true,
-                quantity: true,
-              },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          default:
-            throw new BadRequestException('Please enter a valid query value');
-        }
+            },
+            ...(possibleEnum ? [{ session: possibleEnum }] : []),
+          ],
+        });
       }
 
-      if (filter && Array.isArray(filter)) {
-        message = `Showing filtered data based on selected filters`;
-
+      // Filter logic
+      if (filter && Array.isArray(filter) && filter.length > 0) {
         const sessions: SelectedSession[] = [];
         const units: SelectedUnit[] = [];
         const types: CattleType[] = [];
@@ -294,7 +529,6 @@ export class FeedManagementService {
 
         filter.forEach((f) => {
           const upper = f.toUpperCase();
-
           if (
             Object.values(SelectedSession).includes(upper as SelectedSession)
           ) {
@@ -306,13 +540,9 @@ export class FeedManagementService {
           } else if (Object.values(CattleType).includes(upper as CattleType)) {
             types.push(upper as CattleType);
           } else {
-            feedNameKeywords.push(f); // For AND keyword search
+            feedNameKeywords.push(f);
           }
         });
-
-        const where:any = {
-          AND: [],
-        };
 
         if (sessions.length > 0) {
           where.AND.push({ session: { in: sessions } });
@@ -330,7 +560,6 @@ export class FeedManagementService {
           });
         }
 
-        // AND: feedName must contain all keywords
         feedNameKeywords.forEach((keyword) => {
           where.AND.push({
             feedName: {
@@ -340,148 +569,75 @@ export class FeedManagementService {
           });
         });
 
-        totalCount = await this.prisma.feedConsumption.count({ where });
-
-        allFeedRecords = await this.prisma.feedConsumption.findMany({
-          where,
-          orderBy: { date: 'desc' },
-          select: {
-            cattle: {
-              select: {
-                image1: true,
-                type: true,
-                cattleName: true,
-              },
-            },
-            id: true,
-            feedName: true,
-            session: true,
-            date: true,
-            unit: true,
-            quantity: true,
-          },
-          skip,
-          take: limit,
-        });
+        message = `Showing filtered data based on selected filters`;
       }
 
-      if (search) {
-        message = `Showing the data based on the ${search} value`;
-        const possibleEnum = Object.values(SelectedSession).includes(
-          search.toUpperCase() as SelectedSession,
-        )
-          ? (search.toUpperCase() as SelectedSession)
-          : undefined;
-
-        totalCount = await this.prisma.feedConsumption.count({
-          where: {
-            OR: [
-              {
-                feedName: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                cattleName: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                session: possibleEnum && possibleEnum,
-              },
-            ],
+      // Date range
+      if (fromDate && toDate) {
+        const startDate = new Date(fromDate);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(toDate);
+        endDate.setHours(23, 59, 59, 999);
+        where.AND.push({
+          date: {
+            gte: startDate,
+            lte: endDate,
           },
         });
-
-        allFeedRecords = await this.prisma.feedConsumption.findMany({
-          where: {
-            OR: [
-              {
-                feedName: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                cattleName: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                session: possibleEnum && possibleEnum,
-              },
-            ],
-          },
-          orderBy: { date: 'desc' },
-          select: {
-            cattle: {
-              select: {
-                image1: true,
-                type: true,
-                cattleName: true,
-              },
-            },
-            id: true,
-            feedName: true,
-            session: true,
-            date: true,
-            unit: true,
-            quantity: true,
-          },
-          skip,
-          take: limit,
-        });
+        message = `Showing the filtered data from ${fromDate} to ${toDate}`;
       }
 
-      if(fromDate && toDate) {
-        message = `Showing the data based on ${fromDate} to ${toDate}`
-        const startDate = new Date(fromDate)
-        startDate.setHours(0,0,0,0)
-        const endDate = new Date(toDate)
-        endDate.setHours(23,59,59,999)
-
-        totalCount = await this.prisma.feedConsumption.count({
-          where:{
-            date:{
-              gte:startDate,
-              lte:endDate
-            }
-          }
-        });
-        allFeedRecords = await this.prisma.feedConsumption.findMany({
-          where:{
-            date:{
-              gte:startDate,
-              lte:endDate
-            }
-          },
-          orderBy: { date: 'desc' },
-          select: {
-            cattle: {
-              select: {
-                image1: true,
-                type: true,
-                cattleName: true,
-              },
-            },
-            id: true,
-            feedName: true,
-            session: true,
-            date: true,
-            unit: true,
-            quantity: true,
-          },
-          skip: skip,
-          take: limit,
-        });
+      // Sort logic
+      let orderBy: any = { date: 'desc' };
+      if (sortBy) {
+        message = `Showing sorted data based on ${sortBy}`;
+        switch (sortBy) {
+          case 'name-asc':
+            orderBy = { feedName: 'asc' };
+            break;
+          case 'name-desc':
+            orderBy = { feedName: 'desc' };
+            break;
+          case 'newest':
+            orderBy = { date: 'desc' };
+            break;
+          case 'oldest':
+            orderBy = { date: 'asc' };
+            break;
+          default:
+            throw new BadRequestException('Please enter a valid query value');
+        }
       }
+
+      const totalCount = await this.prisma.feedConsumption.count({
+        where: where.AND.length > 0 ? where : undefined,
+      });
+
+      const allFeedRecords = await this.prisma.feedConsumption.findMany({
+        where: where.AND.length > 0 ? where : undefined,
+        orderBy,
+        select: {
+          cattle: {
+            select: {
+              image1: true,
+              type: true,
+              cattleName: true,
+            },
+          },
+          id: true,
+          feedName: true,
+          session: true,
+          date: true,
+          unit: true,
+          quantity: true,
+        },
+        skip,
+        take: limit,
+      });
 
       const feedManagementOverview = {
         allFeedRecords,
-        totalCount: totalCount,
+        totalCount,
         totalPages: Math.ceil(totalCount / 25),
       };
 
