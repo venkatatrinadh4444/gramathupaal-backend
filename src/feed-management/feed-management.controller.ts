@@ -22,6 +22,7 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FeedManagementService } from './feed-management.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -29,6 +30,7 @@ import { ConsumedFeedDto } from './dto/consumed-feed.dto';
 import { matches } from 'class-validator';
 
 @ApiTags('Feed Management')
+@ApiBearerAuth('access-token')
 @Controller('api/dashboard/feed-management')
 export class FeedManagementController {
   constructor(private readonly feedManagementService: FeedManagementService) {}

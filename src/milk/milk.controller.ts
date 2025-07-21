@@ -22,6 +22,7 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AddMilkRecordDto } from './dto/add-milk-record.dto';
@@ -29,6 +30,7 @@ import { MilkService } from './milk.service';
 import { matches } from 'class-validator';
 
 @ApiTags('Milk Management')
+@ApiBearerAuth('access-token')
 @Controller('api/dashboard/milk')
 export class MilkController {
   constructor(private readonly milkService: MilkService) {}

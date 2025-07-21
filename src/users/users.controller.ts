@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('User')
+@ApiBearerAuth('access-token')
 @Controller('api/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

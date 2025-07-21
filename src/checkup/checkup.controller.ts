@@ -27,7 +27,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Doctor Checkups')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @Controller('api/dashboard/doctor/checkup')
 export class CheckupController {
   constructor(private readonly checkupService: CheckupService) {}

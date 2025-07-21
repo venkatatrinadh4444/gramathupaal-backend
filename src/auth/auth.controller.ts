@@ -7,6 +7,7 @@ import {
   Delete,
   Req,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register-user.dto';
@@ -21,15 +22,18 @@ import {
   ApiUnauthorizedResponse,
   ApiTags,
   ApiOkResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Authentication')
+@ApiBearerAuth('access-token')
 @Controller('api/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly configService: ConfigService,
+    private readonly jwtService:JwtService
   ) {}
 
   //User login
@@ -71,19 +75,9 @@ export class AuthController {
     },
   })
   async login(
-    @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
+    @Body() loginDto: LoginDto
   ) {
     const resultData = await this.authService.validateUser(loginDto);
-
-    res.cookie('user_token', resultData.token, {
-      httpOnly: true,
-      secure:
-        this.configService.get('NODE_ENV') === 'production' ? true : false,
-      sameSite:
-        this.configService.get('NODE_ENV') === 'production' ? 'none' : 'lax',
-      maxAge:24 * 60 * 60 * 1000,
-    });
 
     return {
       message: 'Login successful',
@@ -174,6 +168,49 @@ export class AuthController {
   
     res.clearCookie('user_token');
     return res.status(200).json({ message: 'Logout successful!' });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/refresh-token')
+  @ApiOperation({ summary: 'Generating a new JWT token' })
+  @ApiOkResponse({
+    description: 'New token generated successfully',
+    schema: {
+      example: {
+        message: 'New token generated'
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Token not found in request or user not authenticated',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Token not found!',
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized request (missing or invalid JWT token)',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  async generateNewToken(@Req() req: Request, @Res() res: Response) {
+    const user = (req as any).user;
+
+    const token = this.jwtService.sign({
+      id: user?.id,
+      email: user?.email,
+      role: user?.role,
+    })
+
+    return res.status(200).json({ message: 'New token generated successfully!', token });
   }
   
 }

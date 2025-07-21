@@ -38,6 +38,7 @@ import { EditAnimalDto } from './dto/edit-animal.dto';
 import { AddNewCalfDto } from './dto/add-calf.dto';
 
 @ApiTags('Animal Management')
+@ApiBearerAuth('access-token')
 @ApiBearerAuth()
 @Controller('api/dashboard/animal')
 export class AnimalController {

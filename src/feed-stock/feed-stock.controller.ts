@@ -19,12 +19,14 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FeedStockService } from './feed-stock.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AddFeedStock } from './dto/add-feed-stock.dto';
 
 @ApiTags('Feed Stock Management')
+@ApiBearerAuth('access-token')
 @Controller('api/dashboard/feed-stock')
 export class FeedStockController {
   constructor(private readonly feedStockService: FeedStockService) {}

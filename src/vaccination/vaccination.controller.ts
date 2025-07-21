@@ -26,9 +26,11 @@ import {
   ApiUnauthorizedResponse,
   ApiNotFoundResponse,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Vaccination')
+@ApiBearerAuth('access-token')
 @Controller('api/dashboard/doctor/vaccination')
 export class VaccinationController {
   constructor(private readonly vaccinationService: VaccinationService) {}
