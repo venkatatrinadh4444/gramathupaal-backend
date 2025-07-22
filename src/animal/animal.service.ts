@@ -1131,8 +1131,8 @@ export class AnimalService {
   async generateCalfId(type: string) {
     try {
       const length = await this.prisma.calf.count();
-      const cattleId = `${type.toLocaleLowerCase().slice(0, 1)}-${length}`;
-      return { message: 'New Calf ID generated', cattleId };
+      const calfId = `${type.toLocaleLowerCase().slice(0, 1)}-${length}`;
+      return { message: 'New Calf ID generated', calfId };
     } catch (err) {
       catchBlock(err);
     }

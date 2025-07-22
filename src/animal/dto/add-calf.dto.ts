@@ -23,7 +23,7 @@ export class AddNewCalfDto {
     example: 'C-202',
   })
   @IsNotEmpty()
-  @Matches(/^[A-Z]-\d+$/, { message: 'Calf name must follow the format C-202' })
+  @Matches(/^[a-z]-\d+$/, { message: 'Calf name must follow the format C-202' })
   calfId: string;
 
   @ApiProperty({

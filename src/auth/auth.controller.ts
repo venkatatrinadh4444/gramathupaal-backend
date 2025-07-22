@@ -165,8 +165,7 @@ export class AuthController {
     if (!user?.token) {
       throw new BadRequestException('Token not found!');
     }
-  
-    res.clearCookie('user_token');
+    
     return res.status(200).json({ message: 'Logout successful!' });
   }
 

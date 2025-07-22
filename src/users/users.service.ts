@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -29,7 +30,7 @@ export class UserService {
     try {
       const { email, password, role } = registerDto;
 
-      await this.prisma.user.findFirst({ where: { email } }) &&
+      (await this.prisma.user.findFirst({ where: { email } })) &&
         (() => {
           throw new ConflictException('Email is already in use');
         })();
@@ -57,7 +58,7 @@ export class UserService {
 
       const otp = otpGenerator.generate(6, {
         digits: true,
-        lowerCaseAlphabets:false,
+        lowerCaseAlphabets: false,
         upperCaseAlphabets: false,
         specialChars: false,
       });
@@ -96,14 +97,22 @@ export class UserService {
     }
   }
 
-   //Reset password after verifying OTP
+  //Reset password after verifying OTP
   async resetPassword(loginDto: LoginDto) {
     try {
       const { email, password } = loginDto;
 
-      (await this.prisma.user.findFirst({ where: { email } })) ||
+      const user =
+        (await this.prisma.user.findFirst({ where: { email } })) ||
         (() => {
           throw new NotFoundException('User not found!');
+        })();
+        
+      (await bcrypt.compare(password, user?.password)) &&
+        (() => {
+          throw new BadRequestException(
+            'Please choose a password different from your current one',
+          );
         })();
 
       await this.prisma.user.update({
