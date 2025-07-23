@@ -59,8 +59,10 @@ export class CheckupService {
   async fetchingAllCheckups(
     page: number,
     sortBy: string,
-    filter: string,
+    filter: string[],
     search: string,
+    fromDate: string,
+    toDate: string,
   ) {
     try {
       const skip = (page - 1) * 25;
@@ -85,16 +87,15 @@ export class CheckupService {
             },
           },
         },
-        skip:skip,
-        take:limit
+        skip: skip,
+        take: limit,
       });
 
       if (sortBy) {
         message = `Showing the sorted data based on the ${sortBy}`;
         switch (sortBy) {
           case 'name-asc':
-            allCheckups = await this.prisma.checkup.findMany({
-              orderBy: { prescription: 'asc' },
+            allCheckups = await this.prisma.checkup.findMany({           
               select: {
                 id: true,
                 date: true,
@@ -111,13 +112,17 @@ export class CheckupService {
                   },
                 },
               },
-              skip:skip,
-              take:limit
+              orderBy:{
+                cattle : {
+                  type:'asc'
+                }
+              },
+              skip: skip,
+              take: limit,
             });
             break;
           case 'name-desc':
-            allCheckups = await this.prisma.checkup.findMany({
-              orderBy: { prescription: 'desc' },
+            allCheckups = await this.prisma.checkup.findMany({         
               select: {
                 id: true,
                 date: true,
@@ -134,8 +139,13 @@ export class CheckupService {
                   },
                 },
               },
-              skip:skip,
-              take:limit
+              orderBy : {
+                cattle : {
+                  type:'desc'
+                }
+              },
+              skip: skip,
+              take: limit,
             });
             break;
           case 'newest':
@@ -157,8 +167,8 @@ export class CheckupService {
                   },
                 },
               },
-              skip:skip,
-              take:limit
+              skip: skip,
+              take: limit,
             });
             break;
           case 'descending':
@@ -180,8 +190,8 @@ export class CheckupService {
                   },
                 },
               },
-              skip:skip,
-              take:limit
+              skip: skip,
+              take: limit,
             });
             break;
           default:
@@ -189,45 +199,116 @@ export class CheckupService {
         }
       }
 
-      if (filter) {
-        message = `Showing the filterd records based on ${filter}`;
-        const type = filter.toUpperCase() as CattleType;
+      // if (filter) {
+      //   message = `Showing the filterd records based on ${filter}`;
+      //   const type = filter.toUpperCase() as CattleType;
 
-        if (Object.values(CattleType).includes(type)) {
-          totalCount = await this.prisma.checkup.count({
-            where: {
-              cattle: {
-                type: type,
-              },
+      //   if (Object.values(CattleType).includes(type)) {
+      //     totalCount = await this.prisma.checkup.count({
+      //       where: {
+      //         cattle: {
+      //           type: type,
+      //         },
+      //       },
+      //     });
+      //     allCheckups = await this.prisma.checkup.findMany({
+      //       where: {
+      //         cattle: {
+      //           type: type,
+      //         },
+      //       },
+      //       orderBy: { date: 'desc' },
+      //       select: {
+      //         id: true,
+      //         date: true,
+      //         prescription: true,
+      //         description: true,
+      //         doctorName: true,
+      //         doctorPhone: true,
+      //         cattle: {
+      //           select: {
+      //             image1: true,
+      //             active: true,
+      //             cattleName: true,
+      //             type: true,
+      //           },
+      //         },
+      //       },
+      //       skip:skip,
+      //       take:limit
+      //     });
+      //   }
+      // }
+      const where: any = { AND: [] };
+
+      // Handle cattle type filter (CattleType[])
+      if (filter && Array.isArray(filter) && filter.length > 0) {
+        const types: CattleType[] = [];
+
+        filter.forEach((f) => {
+          const upper = f.toUpperCase();
+          if (Object.values(CattleType).includes(upper as CattleType)) {
+            types.push(upper as CattleType);
+          }
+        });
+
+        if (types.length > 0) {
+          where.AND.push({
+            cattle: {
+              type: { in: types },
             },
           });
-          allCheckups = await this.prisma.checkup.findMany({
-            where: {
-              cattle: {
-                type: type,
-              },
-            },
-            orderBy: { date: 'desc' },
-            select: {
-              id: true,
-              date: true,
-              prescription: true,
-              description: true,
-              doctorName: true,
-              doctorPhone: true,
-              cattle: {
-                select: {
-                  image1: true,
-                  active: true,
-                  cattleName: true,
-                  type: true,
-                },
-              },
-            },
-            skip:skip,
-            take:limit
-          });
+
+          message = `Showing filtered data based on selected cattle type(s)`;
         }
+      }
+
+      // Handle date range filter
+      if (fromDate && toDate) {
+        const startDate = new Date(fromDate);
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(toDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        where.AND.push({
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        });
+
+        message = filter?.length
+          ? `Showing filtered data for selected cattle type(s) from ${fromDate} to ${toDate}`
+          : `Showing filtered data from ${fromDate} to ${toDate}`;
+      }
+
+      // Run query only if filters are applied
+      if (where.AND.length > 0) {
+        totalCount = await this.prisma.checkup.count({ where });
+
+        allCheckups = await this.prisma.checkup.findMany({
+          where,
+          orderBy: { date: 'desc' },
+          select: {
+            id: true,
+            date: true,
+            prescription: true,
+            description: true,
+            doctorName: true,
+            doctorPhone: true,
+            cattle: {
+              select: {
+                image1: true,
+                active: true,
+                cattleName: true,
+                type: true,
+              },
+            },
+          },
+          skip,
+          take: limit,
+        });
       }
 
       if (search) {
@@ -288,16 +369,16 @@ export class CheckupService {
               },
             },
           },
-          skip:skip,
-          take:limit
+          skip: skip,
+          take: limit,
         });
       }
 
       const checkupOverview = {
         allCheckups,
-        totalRecordsCount : totalCount,
-        totalPages : Math.ceil(totalCount/25)
-      }
+        totalRecordsCount: totalCount,
+        totalPages: Math.ceil(totalCount / 25),
+      };
 
       return { message, checkupOverview };
     } catch (err) {

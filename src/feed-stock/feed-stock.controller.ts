@@ -59,9 +59,9 @@ export class FeedStockController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async addFeedStock(@Body() feedDto: AddFeedStock,@Request() req:any) {
-    const userId=req?.user?.id
-    return this.feedStockService.addNewStock(feedDto,userId);
+  async addFeedStock(@Body() feedDto: AddFeedStock, @Request() req: any) {
+    const userId = req?.user?.id;
+    return this.feedStockService.addNewStock(feedDto, userId);
   }
 
   //Fetch all feed records
@@ -75,26 +75,40 @@ export class FeedStockController {
     description: 'Enter a valid animal name (e.g., 1)',
   })
   @ApiQuery({
-      name: 'sortBy',
-      required: false,
-      description:
-        'Query string for sorting data based on (e.g.,"newest","oldest","name-asc","name-dsc")',
-      example: 'newest',
-    })
-    @ApiQuery({
-      name: 'filter',
-      required: false,
-      description:
-        'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
-      example: 'KG',
-    })
-    @ApiQuery({
-      name: 'search',
-      required: false,
-      description:
-        'Search string for filterin data based on the stock name',
-      example: 'Gross',
-    })
+    name: 'sortBy',
+    required: false,
+    description:
+      'Query string for sorting data based on (e.g.,"newest","oldest","name-asc","name-dsc")',
+    example: 'newest',
+  })
+  @ApiQuery({
+    name: 'filter',
+    isArray: true,
+    required: false,
+    description:
+      'Query string for filtering data based on (e.g.,"KG","PIECES","PACKETS")',
+    example: ['KG', 'PIECES'],
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search string for filterin data based on the stock name',
+    example: 'Gross',
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description:
+      'Specific start date to filter for feed management overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description:
+      'Specific end date to filter for feed management overview data',
+    example: '2025-06-12',
+  })
   @ApiOkResponse({
     description: 'List of all feed stock records',
     type: [AddFeedStock],
@@ -102,8 +116,27 @@ export class FeedStockController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized access - JWT token required',
   })
-  async gettingAllFeedStockRecords(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
-    return this.feedStockService.gettingAllFeedRecords(page,sortBy,filter,search);
+  async gettingAllFeedStockRecords(
+    @Param('page', ParseIntPipe) page: number,
+    @Query('sortBy') sortBy: string,
+    @Query('filter') filter: string[],
+    @Query('search') search: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    const normalizedFilter = Array.isArray(filter)
+      ? filter
+      : filter
+        ? [filter]
+        : [];
+    return this.feedStockService.gettingAllFeedRecords(
+      page,
+      sortBy,
+      normalizedFilter,
+      search,
+      fromDate,
+      toDate,
+    );
   }
 
   //Fetch specific feed record history

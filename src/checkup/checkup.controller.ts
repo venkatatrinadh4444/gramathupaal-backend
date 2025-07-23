@@ -65,6 +65,7 @@ export class CheckupController {
   })
   @ApiQuery({
     name: 'filter',
+    isArray: true,
     required: false,
     description:
       'Query string for filtering data based on (e.g.,"COW","BUFFALO","GOAT")',
@@ -77,12 +78,45 @@ export class CheckupController {
       'Search string for filtering data based on cattle name, prescription',
     example: 'kaveri-004',
   })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description:
+      'Specific start date to filter for feed management overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description:
+      'Specific end date to filter for feed management overview data',
+    example: '2025-06-12',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns a list of all checkup records',
   })
-  async gettingAllDoctorCheckupReports(@Param('page',ParseIntPipe) page:number , @Query('sortBy') sortBy:string , @Query('filter') filter:string , @Query('search') search:string) {
-    return this.checkupService.fetchingAllCheckups(page,sortBy,filter,search);
+  async gettingAllDoctorCheckupReports(
+    @Param('page', ParseIntPipe) page: number,
+    @Query('sortBy') sortBy: string,
+    @Query('filter') filter: string[],
+    @Query('search') search: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    const normalizedFilter = Array.isArray(filter)
+      ? filter
+      : filter
+        ? [filter]
+        : [];
+    return this.checkupService.fetchingAllCheckups(
+      page,
+      sortBy,
+      normalizedFilter,
+      search,
+      fromDate,
+      toDate
+    );
   }
 
   //Fetch specific animal checkup records
@@ -171,37 +205,41 @@ export class CheckupController {
     return this.checkupService.checkupDashboard(fromDate, toDate);
   }
 
-   // Get checkup records by a specific date range
-   @UseGuards(JwtAuthGuard)
-   @Get('date-specific-checkup-records/:cattleName')
-   @ApiOperation({ summary: 'Fetching all checkup records based on the date' })
-   @ApiOkResponse({ description: 'Showing the data of checkup records' })
-   @ApiUnauthorizedResponse({
-     description: 'Unauthorized access - JWT token required',
-   })
-   @ApiParam({
-     name: 'cattleName',
-     required: true,
-     example: 'Kaveri-001',
-     description: 'Enter a valid cattle name',
-   })
-   @ApiQuery({
-     name: 'fromDate',
-     required: true,
-     example: '2025-06-12',
-     description: 'Required date filter in YYYY-MM-DD format',
-   })
-   @ApiQuery({
-     name: 'toDate',
-     required: true,
-     example: '2025-06-12',
-     description: 'Required date filter in YYYY-MM-DD format',
-   })
-   async gettingDateBasedCheckupRecords(
-     @Param('cattleName') cattleName: string,
-     @Query('fromDate') fromDate: string,
-     @Query('toDate') toDate: string
-   ) {
-     return this.checkupService.getCheckupRecordsForSpecificDate(cattleName, fromDate,toDate);
-   }
+  // Get checkup records by a specific date range
+  @UseGuards(JwtAuthGuard)
+  @Get('date-specific-checkup-records/:cattleName')
+  @ApiOperation({ summary: 'Fetching all checkup records based on the date' })
+  @ApiOkResponse({ description: 'Showing the data of checkup records' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access - JWT token required',
+  })
+  @ApiParam({
+    name: 'cattleName',
+    required: true,
+    example: 'Kaveri-001',
+    description: 'Enter a valid cattle name',
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: true,
+    example: '2025-06-12',
+    description: 'Required date filter in YYYY-MM-DD format',
+  })
+  async gettingDateBasedCheckupRecords(
+    @Param('cattleName') cattleName: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    return this.checkupService.getCheckupRecordsForSpecificDate(
+      cattleName,
+      fromDate,
+      toDate,
+    );
+  }
 }

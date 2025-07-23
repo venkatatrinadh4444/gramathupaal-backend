@@ -209,7 +209,7 @@ export class AuthController {
       role: user?.role,
     })
 
-    return res.status(200).json({ message: 'New token generated successfully!', token });
+    return res.status(200).json({ message: 'New token generated successfully!', user, token });
   }
   
 }

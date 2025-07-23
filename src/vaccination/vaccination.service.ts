@@ -339,7 +339,6 @@ export class VaccinationService {
             types.push(upper as CattleType);
           }
         });
-        console.log(types)
         if (types.length > 0) {
           where.cattle = {
             ...(where.cattle || {}),
