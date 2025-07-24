@@ -35,8 +35,8 @@ model User {
 // Cattle Management
 
 enum CattleType {
-  COW
   BUFFALO
+  COW
   GOAT
 }
 

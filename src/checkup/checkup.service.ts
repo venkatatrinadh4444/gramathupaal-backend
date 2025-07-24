@@ -95,7 +95,12 @@ export class CheckupService {
         message = `Showing the sorted data based on the ${sortBy}`;
         switch (sortBy) {
           case 'name-asc':
-            allCheckups = await this.prisma.checkup.findMany({           
+            allCheckups = await this.prisma.checkup.findMany({
+              orderBy:{
+                cattle: {
+                  type:'desc'
+                }
+              },          
               select: {
                 id: true,
                 date: true,
@@ -111,18 +116,18 @@ export class CheckupService {
                     type: true,
                   },
                 },
-              },
-              orderBy:{
-                cattle : {
-                  type:'asc'
-                }
               },
               skip: skip,
               take: limit,
             });
             break;
           case 'name-desc':
-            allCheckups = await this.prisma.checkup.findMany({         
+            allCheckups = await this.prisma.checkup.findMany({
+              orderBy:{
+                cattle: {
+                  type:'asc'
+                }
+              },             
               select: {
                 id: true,
                 date: true,
@@ -138,11 +143,6 @@ export class CheckupService {
                     type: true,
                   },
                 },
-              },
-              orderBy : {
-                cattle : {
-                  type:'desc'
-                }
               },
               skip: skip,
               take: limit,
