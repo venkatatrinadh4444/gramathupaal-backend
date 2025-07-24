@@ -32,13 +32,12 @@ export class EditAnimalDto {
 
 
     @ApiProperty({
-        example:180,
+        example:180.5,
         description:'Weight of the cattle'
     })
     @IsNotEmpty()
-    @IsInt()
-    @Type(()=>Number)
-    weight:number
+    @IsDecimal()
+    weight:string
 
     @ApiProperty({
         example:8.3,

@@ -83,7 +83,7 @@ model Cattle {
   cattleName String @unique 
   healthStatus HealthStatus
   type CattleType
-  weight Int
+  weight Decimal @db.Decimal(5,2)
   active Boolean @default(true)
   snf Decimal @db.Decimal(5,2)
   image1 String
