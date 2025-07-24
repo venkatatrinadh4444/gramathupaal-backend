@@ -97,9 +97,7 @@ export class CheckupService {
           case 'name-asc':
             allCheckups = await this.prisma.checkup.findMany({
               orderBy:{
-                cattle: {
-                  type:'desc'
-                }
+               cattleName:'asc'
               },          
               select: {
                 id: true,
@@ -124,9 +122,7 @@ export class CheckupService {
           case 'name-desc':
             allCheckups = await this.prisma.checkup.findMany({
               orderBy:{
-                cattle: {
-                  type:'asc'
-                }
+                cattleName:'desc'
               },             
               select: {
                 id: true,
