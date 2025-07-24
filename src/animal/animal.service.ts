@@ -80,7 +80,6 @@ export class AnimalService {
     }
   }
 
-  // Get all cattles
   async gettingAllCattles(
     page: number,
     sortBy: string,
@@ -92,60 +91,15 @@ export class AnimalService {
       const skip = (page - 1) * 25;
       const limit = 25;
       let totalPages: number | undefined;
-      let allCattlesDetails: any;
-      let message: string = 'showing the intial paginated data';
-
-      totalPages = await this.prisma.cattle.count();
-      allCattlesDetails = await this.prisma.cattle.findMany({
-        orderBy: { farmEntryDate: 'desc' },
-        skip: skip,
-        take: limit,
-      });
       const allCattles: any[] = [];
-
-      if (sortBy) {
-        message = `showing the sorted data based on ${sortBy}`;
-        switch (sortBy) {
-          case 'name-asc':
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              orderBy: { cattleName: 'asc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'name-desc':
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              orderBy: { cattleName: 'desc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'newest':
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              orderBy: { farmEntryDate: 'desc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          case 'oldest':
-            allCattlesDetails = await this.prisma.cattle.findMany({
-              orderBy: { farmEntryDate: 'asc' },
-              skip: skip,
-              take: limit,
-            });
-            break;
-          default:
-            throw new BadRequestException('Please enter a valid query value');
-        }
-      }
-
+  
       const where: any = {};
-
-      // Filter parsing
+  
+      // Parse filter
       const types: CattleType[] = [];
       const breeds: CattleBreed[] = [];
       const healthStatuses: HealthStatus[] = [];
-
+  
       if (filter && Array.isArray(filter)) {
         filter.forEach((f) => {
           const upper = f.toUpperCase();
@@ -159,42 +113,68 @@ export class AnimalService {
             healthStatuses.push(upper as HealthStatus);
           }
         });
-
+  
         if (types.length > 0) where.type = { in: types };
         if (breeds.length > 0) where.breed = { in: breeds };
         if (healthStatuses.length > 0)
           where.healthStatus = { in: healthStatuses };
       }
-
-      // Date range
+  
+      // Parse date
       if (fromDate && toDate) {
         const startDate = new Date(fromDate);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(toDate);
         endDate.setHours(23, 59, 59, 999);
-
         where.farmEntryDate = {
           gte: startDate,
           lte: endDate,
         };
       }
-
-      // Final message
-      if (Object.keys(where).length > 0) {
-        message = 'Showing filtered data based on selected filters';
-        if (fromDate && toDate) {
-          message += ` and date range ${fromDate} to ${toDate}`;
+  
+      // Sort parser
+      let orderBy: any = { farmEntryDate: 'desc' };
+      let message = 'Showing initial paginated data';
+  
+      if (sortBy) {
+        switch (sortBy) {
+          case 'name-asc':
+            orderBy = { cattleName: 'asc' };
+            message = 'Showing data sorted by name ascending';
+            break;
+          case 'name-desc':
+            orderBy = { cattleName: 'desc' };
+            message = 'Showing data sorted by name descending';
+            break;
+          case 'newest':
+            orderBy = { farmEntryDate: 'desc' };
+            message = 'Showing data sorted by newest';
+            break;
+          case 'oldest':
+            orderBy = { farmEntryDate: 'asc' };
+            message = 'Showing data sorted by oldest';
+            break;
+          default:
+            throw new BadRequestException('Invalid sort option');
         }
       }
-
+  
+      if (Object.keys(where).length > 0) {
+        message = 'Showing filtered data';
+        if (fromDate && toDate) {
+          message += ` from ${fromDate} to ${toDate}`;
+        }
+      }
+  
       totalPages = await this.prisma.cattle.count({ where });
-      allCattlesDetails = await this.prisma.cattle.findMany({
+  
+      const allCattlesDetails = await this.prisma.cattle.findMany({
         where,
-        orderBy: { farmEntryDate: 'desc' },
+        orderBy,
         skip,
         take: limit,
       });
-
+  
       for (const eachCattle of allCattlesDetails) {
         const now = new Date();
         const endTime = new Date(now);
@@ -202,21 +182,21 @@ export class AnimalService {
         const startTime = new Date(now);
         startTime.setMonth(startTime.getMonth() - 1);
         startTime.setHours(0, 0, 0, 0);
-
+  
         const previousEndTime = new Date(startTime);
         previousEndTime.setDate(previousEndTime.getDate() - 1);
         previousEndTime.setHours(23, 59, 59, 999);
         const previousStartTime = new Date(startTime);
         previousStartTime.setMonth(previousStartTime.getMonth() - 1);
         previousStartTime.setHours(0, 0, 0, 0);
-
-        const getAverageValue = async (startTime: any, endTime: any) => {
-          const averageValue = await this.prisma.milk.aggregate({
+  
+        const getAverageValue = async (start: Date, end: Date) => {
+          const avg = await this.prisma.milk.aggregate({
             where: {
               cattleId: eachCattle.cattleName,
               date: {
-                gte: startTime,
-                lte: endTime,
+                gte: start,
+                lte: end,
               },
             },
             _avg: {
@@ -226,12 +206,12 @@ export class AnimalService {
             },
           });
           return (
-            Number(averageValue._avg.morningMilk) +
-            Number(averageValue._avg.afternoonMilk) +
-            Number(averageValue._avg.eveningMilk) / 3
+            Number(avg._avg.morningMilk) +
+            Number(avg._avg.afternoonMilk) +
+            Number(avg._avg.eveningMilk) / 3
           );
         };
-
+  
         function calculatePercentageChange(previous: number, current: number) {
           if (previous === 0 && current === 0) {
             return {
@@ -240,7 +220,6 @@ export class AnimalService {
               message: 'No change (both values are 0)',
             };
           }
-
           if (previous === 0) {
             return {
               status: 'increase',
@@ -248,10 +227,9 @@ export class AnimalService {
               message: 'Cannot calculate change from 0',
             };
           }
-
           const change = ((current - previous) / previous) * 100;
           const rounded = parseFloat(change.toFixed(2));
-
+  
           if (change > 0) {
             return {
               status: 'increase',
@@ -272,35 +250,28 @@ export class AnimalService {
             };
           }
         }
-
-        const currentAverageValue = await getAverageValue(startTime, endTime);
-
-        const previousAverageValue = await getAverageValue(
-          previousStartTime,
-          previousEndTime,
-        );
-
-        const calculatedPercentage = calculatePercentageChange(
-          previousAverageValue,
-          currentAverageValue,
-        );
-
+  
+        const currentAvg = await getAverageValue(startTime, endTime);
+        const prevAvg = await getAverageValue(previousStartTime, previousEndTime);
+        const calc = calculatePercentageChange(prevAvg, currentAvg);
+  
         const eachCattleDetails = {
           ...eachCattle,
-          averageMilk: currentAverageValue,
-          status: calculatedPercentage?.status,
-          percentage: calculatedPercentage?.percent,
+          averageMilk: currentAvg,
+          status: calc?.status,
+          percentage: calc?.percent,
           totalPages: Math.ceil(totalPages / 25),
           totalAnimalCount: totalPages,
         };
         allCattles.push(eachCattleDetails);
       }
-
+  
       return { message, allCattles };
     } catch (err) {
       catchBlock(err);
     }
   }
+  
 
   //Fetching particular animal details
   async showingParticularAnimal(cattleName: string) {
