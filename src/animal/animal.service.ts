@@ -522,6 +522,7 @@ export class AnimalService {
           des: 'Milk collected across all cattle',
           percentage: '',
           status: '',
+          route:'/milk-production'
         },
         {
           number: '',
@@ -529,6 +530,7 @@ export class AnimalService {
           des: 'Count of all cattle added to the system',
           percentage: '',
           status: '',
+          route:'/cattle-management'
         },
         {
           number: '',
@@ -536,6 +538,7 @@ export class AnimalService {
           des: 'Number of cattle reported sick',
           percentage: '',
           status: '',
+          route:'/health-management/cattle-checkups'
         },
         {
           number: '',
@@ -543,6 +546,7 @@ export class AnimalService {
           des: 'Cattle added during the current period',
           percentage: '',
           status: '',
+          route:'/cattle-management'
         },
         {
           number: '',
@@ -550,6 +554,7 @@ export class AnimalService {
           des: 'Quantity of A2 milk collected',
           percentage: '',
           status: '',
+          route:'/milk-production'
         },
       ];
 
