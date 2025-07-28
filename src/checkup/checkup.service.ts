@@ -492,15 +492,13 @@ export class CheckupService {
             },
           },
         });
-        const totalIllnessCases = await this.prisma.checkup.count({
+        const totalIllnessCases = await this.prisma.cattle.count({
           where: {
-            date: {
+            farmEntryDate: {
               gte: startTime,
               lte: endTime,
             },
-            cattle: {
-              healthStatus: 'INJURED',
-            },
+            healthStatus:'INJURED'
           },
         });
         return { totalCheckups, totalIllnessCases };
