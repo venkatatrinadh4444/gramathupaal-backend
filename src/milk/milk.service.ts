@@ -56,201 +56,19 @@ export class MilkService {
     }
   }
 
-  //Fetching all milk records
+  // fetching all milk records
   // async gettingAllMilkRecords(
   //   page: number,
   //   sortBy: string,
   //   filter: string[],
   //   search: string,
-  //   fromDate:string,
-  //   toDate:string
+  //   fromDate: string,
+  //   toDate: string,
   // ) {
   //   try {
   //     const skip = (page - 1) * 25;
   //     const limit = 25;
   //     let message = 'showing initial milk data';
-
-  //     let totalCount = await this.prisma.milk.count();
-
-  //     let allRecords = await this.prisma.milk.findMany({
-  //       orderBy: { date: 'desc' },
-  //       select: {
-  //         cattle: {
-  //           select: {
-  //             image1: true,
-  //             type: true,
-  //             cattleName: true,
-  //           },
-  //         },
-  //         id: true,
-  //         date: true,
-  //         morningMilk: true,
-  //         afternoonMilk: true,
-  //         eveningMilk: true,
-  //         milkGrade: true,
-  //       },
-  //       skip: skip,
-  //       take: limit,
-  //     });
-
-  //     if (search) {
-  //       message = `Showing the searched records based on ${search}`;
-  //       const possibleEnum = Object.values(SelectedMilkGrade).includes(search as SelectedMilkGrade) ? (search as SelectedMilkGrade): undefined
-  //       totalCount = await this.prisma.milk.count({
-  //         where: {
-  //           OR: [ {
-  //             cattle: {
-  //               cattleName: {
-  //                 contains: search.toLowerCase(),
-  //                 mode: 'insensitive',
-  //               },
-  //             },
-  //           },
-  //           {
-  //             milkGrade: possibleEnum && possibleEnum
-  //           }
-  //           ]
-  //         },
-  //       });
-  //       allRecords = await this.prisma.milk.findMany({
-  //         where: {
-  //           OR: [ {
-  //             cattle: {
-  //               cattleName: {
-  //                 contains: search.toLowerCase(),
-  //                 mode: 'insensitive',
-  //               },
-  //             },
-  //           },
-  //           {
-  //             milkGrade: possibleEnum && possibleEnum
-  //           }
-  //           ]
-  //         },
-  //         orderBy:{date:'desc'},
-  //         select: {
-  //           cattle: {
-  //             select: {
-  //               image1: true,
-  //               type: true,
-  //               cattleName: true,
-  //             },
-  //           },
-  //           id: true,
-  //           date: true,
-  //           morningMilk: true,
-  //           afternoonMilk: true,
-  //           eveningMilk: true,
-  //           milkGrade: true,
-  //         },
-  //         skip: skip,
-  //         take: limit,
-  //       });
-  //     }
-
-  //     if (sortBy) {
-  //       message = `showing the sorted data based on ${sortBy}`;
-  //       switch (sortBy) {
-  //         case 'name-asc':
-  //           allRecords = await this.prisma.milk.findMany({
-  //             orderBy: {
-  //               cattle: {
-  //                 cattleName: 'asc',
-  //               },
-  //             },
-  //             select: {
-  //               cattle: {
-  //                 select: {
-  //                   image1: true,
-  //                   type: true,
-  //                   cattleName: true,
-  //                 },
-  //               },
-  //               id: true,
-  //               date: true,
-  //               morningMilk: true,
-  //               afternoonMilk: true,
-  //               eveningMilk: true,
-  //               milkGrade: true,
-  //             },
-  //             skip: skip,
-  //             take: limit,
-  //           });
-  //           break;
-  //         case 'name-desc':
-  //           allRecords = await this.prisma.milk.findMany({
-  //             orderBy: {
-  //               cattle: {
-  //                 cattleName: 'desc',
-  //               },
-  //             },
-  //             select: {
-  //               cattle: {
-  //                 select: {
-  //                   image1: true,
-  //                   type: true,
-  //                   cattleName: true,
-  //                 },
-  //               },
-  //               id: true,
-  //               date: true,
-  //               morningMilk: true,
-  //               afternoonMilk: true,
-  //               eveningMilk: true,
-  //               milkGrade: true,
-  //             },
-  //             skip: skip,
-  //             take: limit,
-  //           });
-  //           break;
-  //         case 'newest':
-  //           allRecords = await this.prisma.milk.findMany({
-  //             orderBy: { date: 'desc' },
-  //             select: {
-  //               cattle: {
-  //                 select: {
-  //                   image1: true,
-  //                   type: true,
-  //                   cattleName: true,
-  //                 },
-  //               },
-  //               id: true,
-  //               date: true,
-  //               morningMilk: true,
-  //               afternoonMilk: true,
-  //               eveningMilk: true,
-  //               milkGrade: true,
-  //             },
-  //             skip: skip,
-  //             take: limit,
-  //           });
-  //           break;
-  //         case 'oldest':
-  //           allRecords = await this.prisma.milk.findMany({
-  //             orderBy: { date: 'asc' },
-  //             select: {
-  //               cattle: {
-  //                 select: {
-  //                   image1: true,
-  //                   type: true,
-  //                   cattleName: true,
-  //                 },
-  //               },
-  //               id: true,
-  //               date: true,
-  //               morningMilk: true,
-  //               afternoonMilk: true,
-  //               eveningMilk: true,
-  //               milkGrade: true,
-  //             },
-  //             skip: skip,
-  //             take: limit,
-  //           });
-  //           break;
-  //         default:
-  //           throw new BadRequestException('Please enter a valid query value');
-  //       }
-  //     }
 
   //     const where: any = {
   //       AND: [],
@@ -259,16 +77,44 @@ export class MilkService {
   //     const types: CattleType[] = [];
   //     const grades: SelectedMilkGrade[] = [];
 
-  //     // Handle filters
+  //     // Search condition
+  //     if (search) {
+  //       message = `Showing the searched records based on ${search}`;
+  //       const possibleEnum = Object.values(SelectedMilkGrade).includes(
+  //         search as SelectedMilkGrade,
+  //       )
+  //         ? (search as SelectedMilkGrade)
+  //         : undefined;
+
+  //       where.AND.push({
+  //         OR: [
+  //           {
+  //             cattle: {
+  //               cattleName: {
+  //                 contains: search.toLowerCase(),
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //           },
+  //           {
+  //             milkGrade: possibleEnum,
+  //           },
+  //         ],
+  //       });
+  //     }
+
+  //     // Filters
   //     if (filter && Array.isArray(filter)) {
   //       filter.forEach((f) => {
   //         const upper = f.toUpperCase();
-
+  //         console.log(f)
   //         if (Object.values(CattleType).includes(upper as CattleType)) {
   //           types.push(upper as CattleType);
   //         }
 
-  //         if (Object.values(SelectedMilkGrade).includes(f as SelectedMilkGrade)) {
+  //         if (
+  //           Object.values(SelectedMilkGrade).includes(f as SelectedMilkGrade)
+  //         ) {
   //           grades.push(f as SelectedMilkGrade);
   //         }
   //       });
@@ -288,11 +134,11 @@ export class MilkService {
   //       }
 
   //       if (types.length > 0 || grades.length > 0) {
-  //         message = "Showing the filtered data based on selected filters";
+  //         message = 'Showing the filtered data based on selected filters';
   //       }
   //     }
 
-  //     // Handle date range
+  //     // Date range
   //     if (fromDate && toDate) {
   //       const startDate = new Date(fromDate);
   //       startDate.setHours(0, 0, 0, 0);
@@ -306,21 +152,50 @@ export class MilkService {
   //         },
   //       });
 
-  //       message = (types.length > 0 || grades.length > 0)
-  //         ? `Showing the data based selected filters and date range  ${fromDate} to ${toDate}`
-  //         : `Showing the data based on date range ${fromDate} to ${toDate}`;
+  //       message =
+  //         types.length > 0 || grades.length > 0
+  //           ? `Showing the data based selected filters and date range ${fromDate} to ${toDate}`
+  //           : `Showing the data based on date range ${fromDate} to ${toDate}`;
   //     }
 
-  //     // If nothing was added to AND, delete it
-  //     if (where.AND.length === 0) {
-  //       delete where.AND;
+  //     // Remove AND if empty
+  //     if (where.AND.length === 0) delete where.AND;
+
+  //     // Sort logic
+  //     let orderBy: any = { date: 'desc' }; // Default
+  //     if (sortBy) {
+  //       message = `Showing the sorted data based on ${sortBy}`;
+  //       switch (sortBy) {
+  //         case 'name-asc':
+  //           orderBy = {
+  //             cattle: {
+  //               cattleName: 'asc',
+  //             },
+  //           };
+  //           break;
+  //         case 'name-desc':
+  //           orderBy = {
+  //             cattle: {
+  //               cattleName: 'desc',
+  //             },
+  //           };
+  //           break;
+  //         case 'oldest':
+  //           orderBy = { date: 'asc' };
+  //           break;
+  //         case 'newest':
+  //           orderBy = { date: 'desc' };
+  //           break;
+  //         default:
+  //           throw new BadRequestException('Please enter a valid query value');
+  //       }
   //     }
 
-  //     totalCount = await this.prisma.milk.count({ where });
+  //     const totalCount = await this.prisma.milk.count({ where });
 
-  //     allRecords = await this.prisma.milk.findMany({
+  //     const allRecords = await this.prisma.milk.findMany({
   //       where,
-  //       orderBy: { date: 'desc' },
+  //       orderBy,
   //       select: {
   //         cattle: {
   //           select: {
@@ -351,7 +226,6 @@ export class MilkService {
   //     catchBlock(err);
   //   }
   // }
-
   async gettingAllMilkRecords(
     page: number,
     sortBy: string,
@@ -364,14 +238,14 @@ export class MilkService {
       const skip = (page - 1) * 25;
       const limit = 25;
       let message = 'showing initial milk data';
-
+  
       const where: any = {
         AND: [],
       };
-
+  
       const types: CattleType[] = [];
       const grades: SelectedMilkGrade[] = [];
-
+  
       // Search condition
       if (search) {
         message = `Showing the searched records based on ${search}`;
@@ -380,7 +254,7 @@ export class MilkService {
         )
           ? (search as SelectedMilkGrade)
           : undefined;
-
+  
         where.AND.push({
           OR: [
             {
@@ -397,65 +271,79 @@ export class MilkService {
           ],
         });
       }
-
-      // Filters
+  
+      // ✅ Updated Filter logic
       if (filter && Array.isArray(filter)) {
-        filter.forEach((f) => {
-          const upper = f.toUpperCase();
-
-          if (Object.values(CattleType).includes(upper as CattleType)) {
-            types.push(upper as CattleType);
-          }
-
-          if (
-            Object.values(SelectedMilkGrade).includes(f as SelectedMilkGrade)
-          ) {
-            grades.push(f as SelectedMilkGrade);
-          }
-        });
-
+        filter
+          .flatMap((item) => item.split(',')) // split comma-separated values
+          .map((f) => f.trim()) // remove any spaces
+          .forEach((f) => {
+            const upper = f.toUpperCase();
+  
+            const matchedType = Object.values(CattleType).find(
+              (type) => type.toString().toUpperCase() === upper,
+            );
+            if (matchedType) {
+              types.push(matchedType as CattleType);
+            }
+  
+            const matchedGrade = Object.values(SelectedMilkGrade).find(
+              (grade) => grade.toString().toUpperCase() === upper,
+            );
+            if (matchedGrade) {
+              grades.push(matchedGrade as SelectedMilkGrade);
+            }
+          });
+  
         if (types.length > 0) {
           where.AND.push({
             cattle: {
-              type: { in: types },
+              type: {
+                in: types,
+              },
             },
           });
         }
-
+  
         if (grades.length > 0) {
           where.AND.push({
-            milkGrade: { in: grades },
+            milkGrade: {
+              in: grades,
+            },
           });
         }
-
+  
         if (types.length > 0 || grades.length > 0) {
           message = 'Showing the filtered data based on selected filters';
         }
       }
-
+  
       // Date range
       if (fromDate && toDate) {
+        console.log(fromDate,toDate)
         const startDate = new Date(fromDate);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(toDate);
         endDate.setHours(23, 59, 59, 999);
 
+        console.log(startDate,endDate)
+  
         where.AND.push({
           date: {
             gte: startDate,
             lte: endDate,
           },
         });
-
+  
         message =
           types.length > 0 || grades.length > 0
             ? `Showing the data based selected filters and date range ${fromDate} to ${toDate}`
             : `Showing the data based on date range ${fromDate} to ${toDate}`;
       }
-
+  
       // Remove AND if empty
       if (where.AND.length === 0) delete where.AND;
-
+  
       // Sort logic
       let orderBy: any = { date: 'desc' }; // Default
       if (sortBy) {
@@ -485,9 +373,9 @@ export class MilkService {
             throw new BadRequestException('Please enter a valid query value');
         }
       }
-
+  
       const totalCount = await this.prisma.milk.count({ where });
-
+  
       const allRecords = await this.prisma.milk.findMany({
         where,
         orderBy,
@@ -509,18 +397,20 @@ export class MilkService {
         skip,
         take: limit,
       });
-
+  
       const milkOverview = {
         allRecords,
         totalPages: Math.ceil(totalCount / 25),
         totalRecordsCount: totalCount,
       };
-
+  
       return { message, milkOverview };
     } catch (err) {
       catchBlock(err);
     }
   }
+  
+  
 
   //Fetching specific animal milk records
   async gettingParticularAnimalMilkRecords(cattleName: string) {
