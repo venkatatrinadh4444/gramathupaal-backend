@@ -242,3 +242,50 @@ model Vaccination {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Employee Table
+
+model Role {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  employees   Employee[]
+  permissions RoleModuleAccess[]
+}
+
+model Employee {
+  id String @id
+  name String
+  mobile String 
+  roleName String
+  role Role @relation(fields: [roleName], references: [name],onDelete: Cascade)
+  active Boolean @default(true)
+  email String?
+  username String
+  password String
+  address String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Module {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  permissions RoleModuleAccess[]
+}
+
+model RoleModuleAccess {
+  id        Int      @id @default(autoincrement())
+  roleName  String
+  moduleName  String
+
+  role      Role     @relation(fields: [roleName], references: [name],onDelete: Cascade)
+  module    Module   @relation(fields: [moduleName], references: [name] , onDelete: Cascade)
+
+  canView   Boolean  @default(false)
+  canEdit   Boolean  @default(false)
+  canDelete Boolean  @default(false)
+
+  @@unique([roleName, moduleName])
+}

@@ -12,7 +12,6 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login-user.dto';
-import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import {
   ApiBody,

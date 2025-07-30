@@ -11,6 +11,7 @@ import { MilkModule } from './milk/milk.module';
 import { FeedStockModule } from './feed-stock/feed-stock.module';
 import { FeedManagementModule } from './feed-management/feed-management.module';
 import { VaccinationModule } from './vaccination/vaccination.module';
+import { EmployeeModule } from './employee/employee.module';
 
 
 @Module({
@@ -18,7 +19,7 @@ import { VaccinationModule } from './vaccination/vaccination.module';
     ConfigModule.forRoot({
       isGlobal:true
     }),
-    PrismaModule, AuthModule,UserModule,AnimalModule,MilkModule,FeedStockModule,FeedManagementModule,CheckupModule, VaccinationModule],
+    PrismaModule, AuthModule,UserModule,AnimalModule,MilkModule,FeedStockModule,FeedManagementModule,CheckupModule, VaccinationModule, EmployeeModule],
   controllers: [AppController],
   providers: [AppService],
 })

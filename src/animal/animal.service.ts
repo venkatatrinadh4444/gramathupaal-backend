@@ -79,7 +79,8 @@ export class AnimalService {
       catchBlock(err);
     }
   }
-
+ 
+  //Fetching all cattle details
   async gettingAllCattles(
     page: number,
     sortBy: string,
