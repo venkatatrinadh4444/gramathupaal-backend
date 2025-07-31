@@ -79,25 +79,13 @@ export class EmployeeController {
               canDelete: false,
             },
             {
-              moduleName: 'Cattle Checkups',
+              moduleName: 'Health Management',
               canView: true,
               canEdit: true,
               canDelete: false,
             },
             {
-              moduleName: 'Cattle Vaccine Management',
-              canView: true,
-              canEdit: true,
-              canDelete: false,
-            },
-            {
-              moduleName: 'Cattle Feed Management',
-              canView: true,
-              canEdit: true,
-              canDelete: false,
-            },
-            {
-              moduleName: 'Feed Stock Management',
+              moduleName: 'Feed Management',
               canView: true,
               canEdit: true,
               canDelete: false,

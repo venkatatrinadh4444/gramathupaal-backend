@@ -56,7 +56,7 @@ describe('AuthService', () => {
       };
 
       userService.findByEmail!.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
+      (jest.spyOn(bcrypt, 'compare') as jest.Mock).mockResolvedValue(true);
       jwtService.sign!.mockReturnValue('mocked-jwt-token');
 
       const result = await authService.validateUser(loginDto);
@@ -97,8 +97,7 @@ describe('AuthService', () => {
       };
 
       userService.findByEmail!.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockResolvedValue(false); // simulate invalid password
-
+      (jest.spyOn(bcrypt, 'compare') as jest.Mock).mockResolvedValue(false);
       await expect(authService.validateUser(loginDto)).rejects.toThrow(BadRequestException);
     });
   });
