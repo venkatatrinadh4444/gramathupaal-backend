@@ -320,13 +320,10 @@ export class MilkService {
   
       // Date range
       if (fromDate && toDate) {
-        console.log(fromDate,toDate)
         const startDate = new Date(fromDate);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(toDate);
         endDate.setHours(23, 59, 59, 999);
-
-        console.log(startDate,endDate)
   
         where.AND.push({
           date: {

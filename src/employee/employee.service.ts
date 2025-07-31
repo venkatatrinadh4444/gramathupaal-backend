@@ -206,12 +206,55 @@ export class EmployeeService {
   }
 
   //Get all the details for dashboard based on roles
-  async getAllRoles(page:number) {
+  async getAllRoles(page:number,search:string,sortBy:string) {
     try {
         const skip = (page - 1) * 25
         const limit = 25
-        const totalRecordsCount = await this.prisma.role.count()
-        const allRoles = await this.prisma.role.findMany({take:limit,skip:skip})
+        let totalRecordsCount = await this.prisma.role.count()
+        let allRoles = await this.prisma.role.findMany({orderBy:{createdAt:'desc'},take:limit,skip:skip})
+        let message = 'Showing all roles'
+
+        if(search) {
+          message = `Showing all the records based on role ${search}`
+          totalRecordsCount = await this.prisma.role.count({
+            where:{
+              name:{
+                contains:search,
+                mode:'insensitive'
+              }
+            },
+          })
+          allRoles = await this.prisma.role.findMany({
+            where:{
+              name:{
+                contains:search,
+                mode:'insensitive'
+              }
+            },
+            take:limit,
+            skip:skip
+          })
+        }
+
+        if(sortBy) {
+          message = `Showing the roles based on the sortBy value of ${sortBy}`
+          switch(sortBy) {
+            case "newest":
+              allRoles = await this.prisma.role.findMany({orderBy:{createdAt:'desc'},take:limit,skip:skip})
+              break;
+            case "oldest":
+              allRoles = await this.prisma.role.findMany({orderBy:{createdAt:'asc'},take:limit,skip:skip})
+              break;
+            case "name-asc":
+              allRoles = await this.prisma.role.findMany({orderBy:{name:'asc'},take:limit,skip:skip})
+              break;
+            case "name-desc":
+              allRoles = await this.prisma.role.findMany({orderBy:{name:'desc'},take:limit,skip:skip})
+              break;
+            default:
+              throw new BadRequestException('Please enter a valid sortBy value')
+          }
+        }
 
         const allRolesDetails:any[] = []
 
@@ -233,7 +276,7 @@ export class EmployeeService {
         }
         
 
-        return {message:'Showing all roles',roleDashboardData}
+        return {message,roleDashboardData}
     } catch (err) {
         catchBlock(err)
     }

@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req,UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req,UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EmployeeService } from './employee.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { VerifySuperAdmin } from '../common/guards/verify-super-admin.guard';
@@ -183,11 +183,23 @@ export class EmployeeController {
     description:'Enter the value of the page',
     example:1
   })
+  @ApiQuery({
+    name:'search',
+    required:false,
+    description:'Enter a name of the role to search',
+    example:"Manager"
+  })
+  @ApiQuery({
+    name:'sortBy',
+    required:false,
+    description:'Enter the value of the sortBy to sort roles',
+    example:"newest"
+  })
   @ApiOkResponse({ description: 'Roles fetched successfully' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token missing or invalid' })
   @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
-  async fetchAllRoles(@Param('page',ParseIntPipe) page:number) {
-    return this.employeeService.getAllRoles(page);
+  async fetchAllRoles(@Param('page',ParseIntPipe) page:number,@Query('search') search:string,@Query('sortBy') sortBy:string) {
+    return this.employeeService.getAllRoles(page,search,sortBy);
   }
 
   //Employee login
