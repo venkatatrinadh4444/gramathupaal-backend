@@ -67,7 +67,7 @@ export class EmployeeController {
               canDelete: false,
             },
             {
-              moduleName: 'MilkProduction',
+              moduleName: 'Milk Production',
               canView: true,
               canEdit: true,
               canDelete: false,
@@ -101,7 +101,7 @@ export class EmployeeController {
 
   //Fetching all employees based on the role
   @UseGuards(JwtAuthGuard, VerifySuperAdmin)
-  @Get('fetch-all-employees/:role')
+  @Get('fetch-all-employees/:role/:page')
   @ApiOperation({ summary: 'Fetch all employees', description: 'Returns the list of all employees. Only accessible by Super Admin.' })
   @ApiParam({
     name:'role',
@@ -109,13 +109,19 @@ export class EmployeeController {
     description:'Enter the valid role of the employee',
     example:'Manager'
   })
+  @ApiParam({
+    name:'page',
+    required:true,
+    description:'Enter the value of the page',
+    example:1
+  })
   @ApiOkResponse({
     description: 'List of employees fetched successfully'
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token is missing or invalid' })
   @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
-  async getAllEmployees(@Param('role') role:string) {
-    return this.employeeService.fetchingAllEmployees(role);
+  async getAllEmployees(@Param('role') role:string,@Param('page',ParseIntPipe) page:number) {
+    return this.employeeService.fetchingAllEmployees(role,page);
   }
 
   //Edit the employee details
@@ -151,13 +157,19 @@ export class EmployeeController {
   //Get all the details for dashboard based on roles
   @UseGuards(JwtAuthGuard, VerifySuperAdmin)
   @ApiBearerAuth()
-  @Get('fetch-all-roles')
+  @Get('fetch-all-roles/:page')
   @ApiOperation({ summary: 'Fetch all roles', description: 'Returns a list of all roles in the system. Accessible only by Super Admin.' })
+  @ApiParam({
+    name:'page',
+    required:true,
+    description:'Enter the value of the page',
+    example:1
+  })
   @ApiOkResponse({ description: 'Roles fetched successfully' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token missing or invalid' })
   @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
-  async fetchAllRoles() {
-    return this.employeeService.getAllRoles();
+  async fetchAllRoles(@Param('page',ParseIntPipe) page:number) {
+    return this.employeeService.getAllRoles(page);
   }
 
   //Employee login

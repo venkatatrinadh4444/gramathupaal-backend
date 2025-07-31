@@ -119,18 +119,21 @@ export class EmployeeService {
   }
 
   //Fetching all employees based on the role
-  async fetchingAllEmployees(role:string) {
+  async fetchingAllEmployees(role:string,page:number) {
     try {
-        const totalCount = await this.prisma.employee.count({where:{roleName:role}})
+        const skip = (page - 1) * 25
+        const limit = 25
+        const totalRecordsCount = await this.prisma.employee.count({where:{roleName:role}})
 
-        const totalUsers = await this.prisma.employee.findMany({where:{roleName:role}})
+        const totalUsers = await this.prisma.employee.findMany({where:{roleName:role},take:limit,skip:skip})
 
         const permissionDetails = await this.prisma.roleModuleAccess.findMany({where:{roleName:role}})
 
         const specificRoleDetails = {
-            totalCount,
-            totalUsers,
-            permissionDetails
+          permissionDetails,
+          totalUsers,
+          totalRecordsCount,
+          totalPage:Math.ceil(totalRecordsCount/25)
         }
 
         return {message:`Showing all details for the role ${role}`,specificRoleDetails}
@@ -203,9 +206,12 @@ export class EmployeeService {
   }
 
   //Get all the details for dashboard based on roles
-  async getAllRoles() {
+  async getAllRoles(page:number) {
     try {
-        const allRoles = await this.prisma.role.findMany()
+        const skip = (page - 1) * 25
+        const limit = 25
+        const totalRecordsCount = await this.prisma.role.count()
+        const allRoles = await this.prisma.role.findMany({take:limit,skip:skip})
 
         const allRolesDetails:any[] = []
 
@@ -219,7 +225,15 @@ export class EmployeeService {
                 totalUsers:totalUsers
             })
         }
-        return {message:'Showing all roles',allRolesDetails}
+
+        const roleDashboardData = {
+          allRolesDetails,
+          totalRecordsCount,
+          totalPages:Math.ceil(totalRecordsCount/25)
+        }
+        
+
+        return {message:'Showing all roles',roleDashboardData}
     } catch (err) {
         catchBlock(err)
     }
