@@ -67,7 +67,43 @@ export class EmployeeController {
               canDelete: false,
             },
             {
+              moduleName: 'Cattle Management',
+              canView: true,
+              canEdit: true,
+              canDelete: false,
+            },
+            {
               moduleName: 'Milk Production',
+              canView: true,
+              canEdit: true,
+              canDelete: false,
+            },
+            {
+              moduleName: 'Cattle Checkups',
+              canView: true,
+              canEdit: true,
+              canDelete: false,
+            },
+            {
+              moduleName: 'Cattle VaccineManagement',
+              canView: true,
+              canEdit: true,
+              canDelete: false,
+            },
+            {
+              moduleName: 'Cattle FeedManagement',
+              canView: true,
+              canEdit: true,
+              canDelete: false,
+            },
+            {
+              moduleName: 'Feed Stock Management',
+              canView: true,
+              canEdit: true,
+              canDelete: false,
+            },
+            {
+              moduleName: 'Employee Management',
               canView: true,
               canEdit: true,
               canDelete: false,
