@@ -61,12 +61,6 @@ export class EmployeeController {
           roleName: 'Manager',
           permissions: [
             {
-              moduleName: 'Dashboard',
-              canView: true,
-              canEdit: false,
-              canDelete: false,
-            },
-            {
               moduleName: 'Cattle Management',
               canView: true,
               canEdit: true,
