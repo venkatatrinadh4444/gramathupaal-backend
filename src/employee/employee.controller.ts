@@ -85,13 +85,13 @@ export class EmployeeController {
               canDelete: false,
             },
             {
-              moduleName: 'Cattle VaccineManagement',
+              moduleName: 'Cattle Vaccine Management',
               canView: true,
               canEdit: true,
               canDelete: false,
             },
             {
-              moduleName: 'Cattle FeedManagement',
+              moduleName: 'Cattle Feed Management',
               canView: true,
               canEdit: true,
               canDelete: false,
