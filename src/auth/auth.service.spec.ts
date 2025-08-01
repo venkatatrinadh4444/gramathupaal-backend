@@ -14,8 +14,9 @@ describe('AuthService', () => {
   const plainPassword = 'plainPassword';
   let hashedPassword: string;
 
+  jest.spyOn(console, 'log').mockImplementation(() => {});
+
   beforeEach(async () => {
-    // Hash password once before each test block
     hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     userService = {
@@ -89,7 +90,7 @@ describe('AuthService', () => {
       const mockUser = {
         id: 1,
         email: 'test@example.com',
-        password: hashedPassword, // correct hash
+        password: hashedPassword,
         role: 'user',
         otp: '1234',
         expiresIn: new Date(),

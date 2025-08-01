@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { AssignMultiplePermissionsDto } from './dto/AssignMultiplePermissionsDto';
 import { EmployeeLoginDto } from './dto/EmployeeLoginDto';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class EmployeeService {
@@ -82,13 +83,23 @@ export class EmployeeService {
   //Adding or updating the access permissions
   async createAccessForModules(dto: AssignMultiplePermissionsDto) {
     try {
-      const role = await this.prisma.role.findUnique({
-        where: { name: dto.roleName },
+      const { roleName } = dto;
+
+      const roleExisted = await this.prisma.role.findFirst({
+        where: {
+          name: {
+            contains: roleName,
+            mode: 'insensitive',
+          },
+        },
       });
 
-      if (!role) {
-        throw new NotFoundException(`Role "${dto.roleName}" does not exist`);
-      }
+      !roleExisted &&
+        (await this.prisma.role.create({
+          data: {
+            name: roleName,
+          },
+        }));
 
       for (const access of dto.permissions) {
         const module = await this.prisma.module.findUnique({
@@ -628,7 +639,7 @@ export class EmployeeService {
         (() => {
           throw new BadRequestException('Employee role record not found!');
         })();
-      await this.prisma.role.delete({where:{id}})
+      await this.prisma.role.delete({ where: { id } });
       return { message: 'Employee role record deleted successfully!' };
     } catch (err) {
       catchBlock(err);
@@ -636,25 +647,302 @@ export class EmployeeService {
   }
 
   //Fetching all the employees from the db
-  async fetchAllEmployees(page: number) {
+  // async fetchAllEmployees(
+  //   page: number,
+  //   search: string,
+  //   sortBy: string,
+  //   filters: string[],
+  //   fromDate:string,
+  //   endDate:string
+  // ) {
+  //   try {
+  //     const skip = (page - 1) * 25;
+  //     const limit = 25;
+  //     let message = 'Showing all the employees';
+  //     let allEmployees = await this.prisma.employee.findMany({
+  //       orderBy: {
+  //         createdAt: 'desc',
+  //       },
+  //       take: limit,
+  //       skip,
+  //     });
+
+  //     if (search) {
+  //       message = `Showing the employees based on the ${search}`;
+  //       allEmployees = await this.prisma.employee.findMany({
+  //         where: {
+  //           OR: [
+  //             {
+  //               id: {
+  //                 contains: search,
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //             {
+  //               name: {
+  //                 contains: search,
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //             {
+  //               email: {
+  //                 contains: search,
+  //                 mode: 'insensitive',
+  //               },
+  //             },
+  //             {
+  //               roleName:{
+  //                 contains:search,
+  //                 mode:'insensitive'
+  //               }
+  //             }
+  //           ],
+  //         },
+  //         orderBy: { createdAt: 'desc' },
+  //         take: limit,
+  //         skip,
+  //       });
+  //     }
+
+  //     if (sortBy) {
+  //       message = `Showing the employees based on the ${sortBy} value`;
+  //       switch (sortBy) {
+  //         case 'newest':
+  //           await this.prisma.employee.findMany({
+  //             orderBy: { createdAt: 'desc' },
+  //           });
+  //           break;
+  //         case 'oldest':
+  //           await this.prisma.employee.findMany({
+  //             orderBy: { createdAt: 'asc' },
+  //           });
+  //           break;
+  //         case 'name-asc':
+  //           await this.prisma.employee.findMany({ orderBy: { name: 'asc' } });
+  //           break;
+  //         case 'name-desc':
+  //           await this.prisma.employee.findMany({ orderBy: { name: 'desc' } });
+  //           break;
+  //         default:
+  //           throw new BadRequestException('Please enter a valid sort value');
+  //       }
+  //     }
+
+  //     if (filters && filters.length > 0) {
+  //       message = `Showing the employees based on the selected filters`
+  //       // Step 1: Find matching names
+  //       const nameMatches = await this.prisma.employee.findMany({
+  //         where: {
+  //           name: {
+  //             in: filters,
+  //           },
+  //         },
+  //         select: { name: true },
+  //       });
+
+  //       // Step 2: Find matching roles
+  //       const roleMatches = await this.prisma.employee.findMany({
+  //         where: {
+  //           roleName: {
+  //             in: filters,
+  //           },
+  //         },
+  //         select: { roleName: true },
+  //       });
+
+  //       const names = [...new Set(nameMatches.map((e) => e.name))];
+  //       const roles = [...new Set(roleMatches.map((e) => e.roleName))];
+
+  //       // Case 1: BOTH name & role match → AND condition on each pair
+  //       if (names.length && roles.length) {
+  //         const orConditions = names
+  //           .map((name) =>
+  //             roles.map((role) => ({
+  //               name: { equals: name, mode: Prisma.QueryMode.insensitive },
+  //               roleName: { equals: role, mode: Prisma.QueryMode.insensitive },
+  //             })),
+  //           )
+  //           .flat();
+
+  //         return await this.prisma.employee.findMany({
+  //           where: {
+  //             OR: orConditions,
+  //           },
+  //         });
+  //       }
+
+  //       // Case 2: Fallback to OR for single match (name or role only)
+  //       const orConditions = [
+  //         ...names.map((name) => ({
+  //           name: { equals: name, mode: Prisma.QueryMode.insensitive },
+  //         })),
+  //         ...roles.map((role) => ({
+  //           roleName: { equals: role, mode: Prisma.QueryMode.insensitive },
+  //         })),
+  //       ];
+
+  //       return await this.prisma.employee.findMany({
+  //         where: {
+  //           OR: orConditions,
+  //         },
+  //       });
+  //     }
+
+  //     const allEmployeeDetails = {
+  //       allEmployees,
+  //       totalRecordsCount: allEmployees.length,
+  //       totalPages: Math.ceil(allEmployees.length / 25),
+  //     };
+
+  //     return {
+  //       message,
+  //       allEmployeeDetails,
+  //     };
+  //   } catch (err) {
+  //     catchBlock(err);
+  //   }
+  // }
+
+  async fetchAllEmployees(
+    page: number,
+    search: string,
+    sortBy: string,
+    filters: string[],
+    fromDate: string,
+    endDate: string,
+  ) {
     try {
       const skip = (page - 1) * 25;
-      const limmit = 25;
-      const totalRecordsCount = await this.prisma.employee.count();
+      const limit = 25;
+      let message = 'Showing all the employees';
+
+      const where: any = {};
+
+      // Search Condition
+      if (search) {
+        message = `Showing the employees based on the ${search}`;
+        where.OR = [
+          {
+            id: { contains: search, mode: 'insensitive' },
+          },
+          {
+            name: { contains: search, mode: 'insensitive' },
+          },
+          {
+            email: { contains: search, mode: 'insensitive' },
+          },
+          {
+            roleName: { contains: search, mode: 'insensitive' },
+          },
+        ];
+      }
+
+      // Date Filter (fromDate to endDate)
+      if (fromDate && endDate) {
+        message = `Showing employees between ${fromDate} and ${endDate}`;
+        const createdAtFilter = {
+          createdAt: {
+            gte: new Date(fromDate),
+            lte: new Date(endDate),
+          },
+        };
+        if (where.AND) {
+          where.AND.push(createdAtFilter);
+        } else {
+          where.AND = [createdAtFilter];
+        }
+      }
+
+      // Filter Condition (name + role)
+      if (filters && filters.length > 0) {
+        message = `Showing the employees based on the selected filters`;
+
+        const nameMatches = await this.prisma.employee.findMany({
+          where: { name: { in: filters } },
+          select: { name: true },
+        });
+
+        const roleMatches = await this.prisma.employee.findMany({
+          where: { roleName: { in: filters } },
+          select: { roleName: true },
+        });
+
+        const names = [...new Set(nameMatches.map((e) => e.name))];
+        const roles = [...new Set(roleMatches.map((e) => e.roleName))];
+
+        if (names.length && roles.length) {
+          // name + role combination with AND
+          const filterOR = names
+            .map((name) =>
+              roles.map((role) => ({
+                name: { equals: name, mode: Prisma.QueryMode.insensitive },
+                roleName: { equals: role, mode: Prisma.QueryMode.insensitive },
+              })),
+            )
+            .flat();
+
+          if (where.AND) {
+            where.AND.push({ OR: filterOR });
+          } else {
+            where.AND = [{ OR: filterOR }];
+          }
+        } else if (names.length || roles.length) {
+          const filterOR = [
+            ...names.map((name) => ({
+              name: { equals: name, mode: Prisma.QueryMode.insensitive },
+            })),
+            ...roles.map((role) => ({
+              roleName: { equals: role, mode: Prisma.QueryMode.insensitive },
+            })),
+          ];
+          if (where.AND) {
+            where.AND.push({ OR: filterOR });
+          } else {
+            where.AND = [{ OR: filterOR }];
+          }
+        }
+      }
+
+      // Sorting
+      let orderBy: any = { createdAt: 'desc' };
+      if (sortBy) {
+        message = `Showing the employees based on the ${sortBy} value`;
+        switch (sortBy) {
+          case 'newest':
+            orderBy = { createdAt: 'desc' };
+            break;
+          case 'oldest':
+            orderBy = { createdAt: 'asc' };
+            break;
+          case 'name-asc':
+            orderBy = { name: 'asc' };
+            break;
+          case 'name-desc':
+            orderBy = { name: 'desc' };
+            break;
+          default:
+            throw new BadRequestException('Please enter a valid sort value');
+        }
+      }
+
+      // Final Query
       const allEmployees = await this.prisma.employee.findMany({
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: limmit,
+        where,
+        take: limit,
         skip,
+        orderBy,
       });
+
+      const totalCount = await this.prisma.employee.count({ where });
+
       const allEmployeeDetails = {
         allEmployees,
-        totalRecordsCount,
-        totalPages: Math.ceil(totalRecordsCount / 25),
+        totalRecordsCount: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
       };
+
       return {
-        message: 'Showing all the employees from the db',
+        message,
         allEmployeeDetails,
       };
     } catch (err) {

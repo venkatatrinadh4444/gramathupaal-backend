@@ -189,14 +189,14 @@ export class EmployeeController {
   @ApiQuery({
     name:'sortBy',
     required:false,
-    description:'Enter the value of the sortBy to sort roles',
+    description:'Enter the value of the sortBy to sort (e.g.,"newest","oldest","name-asc","name-dsc")',
     example:"newest"
   })
   @ApiQuery({
     name:'filter',
     required:false,
     isArray:true,
-    description:'Enter the name of the role to filter',
+    description:'Enter the name of the roles to filter',
     example:['Manager','Visitor']
   })
   @ApiQuery({
@@ -272,13 +272,49 @@ export class EmployeeController {
     description:'Enter the value of the page',
     example:1
   })
+  @ApiQuery({
+    name:'search',
+    required:false,
+    description:'Enter a name of the empId,name,email or role name to search',
+    example:"Manager"
+  })
+  @ApiQuery({
+    name:'sortBy',
+    required:false,
+    description:'Enter the value of the sortBy to sort (e.g.,"newest","oldest","name-asc","name-dsc")',
+    example:"newest"
+  })
+  @ApiQuery({
+    name:'filter',
+    required:false,
+    isArray:true,
+    description:'Enter the name of the name or role to filter',
+    example:['John Doe','Manager']
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description: 'Specific start date to filter for milk overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description: 'Specific end date to filter for mik overview data',
+    example: '2025-08-12',
+  })
   @ApiOkResponse({
     description: 'List of employees fetched successfully'
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token is missing or invalid' })
   @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
-  async fetchAllEmployees(@Param('page',ParseIntPipe) page:number) {
-    return this.employeeService.fetchAllEmployees(page);
+  async fetchAllEmployees(@Param('page',ParseIntPipe) page:number,@Query('search') search:string,@Query('sortBy') sortBy:string,@Query('filter') filter:string[],@Query('fromDate') fromDate:string,@Query('toDate') toDate:string) {
+    const normalizedFilter = Array.isArray(filter)
+      ? filter
+      : filter
+        ? [filter]
+        : [];
+    return this.employeeService.fetchAllEmployees(page,search,sortBy,normalizedFilter,fromDate,toDate);
   }
 
 }
