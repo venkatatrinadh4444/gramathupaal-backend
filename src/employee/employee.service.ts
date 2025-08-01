@@ -42,11 +42,14 @@ export class EmployeeService {
 
       const length = (await this.prisma.employee.count()) + 1;
 
-      const idValue = 'EMP' + length.toString().padStart(3, '0');
+
+      const randomNumber = Math.random()
+
+      const idValue = 'EMP' + randomNumber.toString().slice(-3);
 
       const generateUsername =
         name.trim().replace(/\s+/g, '').toLowerCase() +
-        length.toString().padStart(3, '0');
+        randomNumber.toString().slice(-3);
 
       const passwordString = name.slice(1);
 
