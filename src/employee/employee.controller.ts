@@ -195,11 +195,35 @@ export class EmployeeController {
     description:'Enter the value of the sortBy to sort roles',
     example:"newest"
   })
+  @ApiQuery({
+    name:'filter',
+    required:false,
+    isArray:true,
+    description:'Enter the name of the role to filter',
+    example:['Manager','Visitor']
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description: 'Specific start date to filter for milk overview data',
+    example: '2025-06-12',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description: 'Specific end date to filter for mik overview data',
+    example: '2025-06-12',
+  })
   @ApiOkResponse({ description: 'Roles fetched successfully' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token missing or invalid' })
   @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
-  async fetchAllRoles(@Param('page',ParseIntPipe) page:number,@Query('search') search:string,@Query('sortBy') sortBy:string) {
-    return this.employeeService.getAllRoles(page,search,sortBy);
+  async fetchAllRoles(@Param('page',ParseIntPipe) page:number,@Query('search') search:string,@Query('sortBy') sortBy:string,@Query('filter') filter:string[],@Query('fromDate') fromDate:string,@Query('toDate') toDate:string) {
+    const normalizedFilter = Array.isArray(filter)
+      ? filter
+      : filter
+        ? [filter]
+        : [];
+    return this.employeeService.getAllRoles(page,search,sortBy,normalizedFilter,fromDate,toDate);
   }
 
   //Employee login
