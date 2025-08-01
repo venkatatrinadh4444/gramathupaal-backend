@@ -7,7 +7,6 @@ import {
   UnauthorizedException,
   BadRequestException,
   InternalServerErrorException,
-  HttpException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as otpGenerator from 'otp-generator';

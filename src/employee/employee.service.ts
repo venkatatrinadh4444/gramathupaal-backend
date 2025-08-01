@@ -131,7 +131,7 @@ export class EmployeeService {
   }
 
   //Fetching all employees based on the role
-  async fetchingAllEmployees(role: string, page: number) {
+  async fetchingAllEmployeesBasedOnRole(role: string, page: number) {
     try {
       const skip = (page - 1) * 25;
       const limit = 25;
@@ -231,10 +231,13 @@ export class EmployeeService {
   //Delete employee
   async deleteEmployee(id: string) {
     try {
-      (await this.prisma.employee.delete({ where: { id } })) ||
-        (() => {
-          throw new BadRequestException('Employee not found!');
-        });
+      (await this.prisma.employee.findUnique({ where: { id } }))
+        ? null
+        : (() => {
+            throw new BadRequestException('Employee not found!');
+          })();
+
+      await this.prisma.employee.delete({ where: { id } });
       return {
         message: 'Employee deleted successfully!',
         allEmployees: await this.prisma.employee.findMany(),
@@ -411,7 +414,6 @@ export class EmployeeService {
   //     catchBlock(err);
   //   }
   // }
-
   async getAllRoles(
     page: number,
     search: string,
@@ -613,6 +615,47 @@ export class EmployeeService {
       return {
         message: 'Showing the fetched employee details',
         employeeDetails,
+      };
+    } catch (err) {
+      catchBlock(err);
+    }
+  }
+
+  //Deleting a specific role
+  async deleteRole(id: number) {
+    try {
+      (await this.prisma.role.findFirst({ where: { id: id } })) ||
+        (() => {
+          throw new BadRequestException('Employee role record not found!');
+        })();
+      await this.prisma.role.delete({where:{id}})
+      return { message: 'Employee role record deleted successfully!' };
+    } catch (err) {
+      catchBlock(err);
+    }
+  }
+
+  //Fetching all the employees from the db
+  async fetchAllEmployees(page: number) {
+    try {
+      const skip = (page - 1) * 25;
+      const limmit = 25;
+      const totalRecordsCount = await this.prisma.employee.count();
+      const allEmployees = await this.prisma.employee.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: limmit,
+        skip,
+      });
+      const allEmployeeDetails = {
+        allEmployees,
+        totalRecordsCount,
+        totalPages: Math.ceil(totalRecordsCount / 25),
+      };
+      return {
+        message: 'Showing all the employees from the db',
+        allEmployeeDetails,
       };
     } catch (err) {
       catchBlock(err);

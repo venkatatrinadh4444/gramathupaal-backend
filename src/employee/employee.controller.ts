@@ -139,12 +139,11 @@ export class EmployeeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token is missing or invalid' })
   @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
   async getAllEmployees(@Param('role') role:string,@Param('page',ParseIntPipe) page:number) {
-    return this.employeeService.fetchingAllEmployees(role,page);
+    return this.employeeService.fetchingAllEmployeesBasedOnRole(role,page);
   }
 
   //Edit the employee details
   @UseGuards(JwtAuthGuard, VerifySuperAdmin)
-  @ApiBearerAuth()
   @Put('edit-employee/:id')
   @ApiOperation({ summary: 'Edit employee', description: 'Edits the details of an existing employee. Accessible only by Super Admin.' })
   @ApiOkResponse({ description: 'Employee updated successfully' })
@@ -161,7 +160,6 @@ export class EmployeeController {
 
   //Delete employee
   @UseGuards(JwtAuthGuard, VerifySuperAdmin)
-  @ApiBearerAuth()
   @Delete('delete-employee/:id')
   @ApiOperation({ summary: 'Soft delete employee', description: 'Marks the employee as inactive (soft delete). Accessible only by Super Admin.' })
   @ApiOkResponse({ description: 'Employee soft-deleted successfully' })
@@ -174,7 +172,6 @@ export class EmployeeController {
 
   //Get all the details for dashboard based on roles
   @UseGuards(JwtAuthGuard, VerifySuperAdmin)
-  @ApiBearerAuth()
   @Get('fetch-all-roles/:page')
   @ApiOperation({ summary: 'Fetch all roles', description: 'Returns a list of all roles in the system. Accessible only by Super Admin.' })
   @ApiParam({
@@ -238,7 +235,6 @@ export class EmployeeController {
 
   //Fetching logged employee details
   @UseGuards(VerifyEmployeeToken)
-  @ApiBearerAuth()
   @Get('fetch-employee-details')
   @ApiOperation({
     summary: 'Fetch logged-in employee details',
@@ -251,6 +247,38 @@ export class EmployeeController {
   async fetchEmployeeDetails(@Req() req: Request) {
     const employee = (req as any).employee;
     return this.employeeService.loggedEmployeeDetails(employee?.token, employee?.username);
+  }
+
+  
+  //Delete employee role
+  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @Delete('delete-role/:id')
+  @ApiOperation({ summary: 'Soft delete employee', description: 'Marks the employee role as inactive (soft delete). Accessible only by Super Admin.' })
+  @ApiOkResponse({ description: 'Employee role soft-deleted successfully' })
+  @ApiNotFoundResponse({ description: 'Employee role not found' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token missing or invalid' })
+  @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
+  async deleteEmployeeRole(@Param('id',ParseIntPipe) id: number) {
+    return this.employeeService.deleteRole(id)
+  }
+
+  //Fetching all employees from the db
+  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @Get('fetch-all-employees/:page')
+  @ApiOperation({ summary: 'Fetch all employees', description: 'Returns the list of all employees. Only accessible by Super Admin.' })
+  @ApiParam({
+    name:'page',
+    required:true,
+    description:'Enter the value of the page',
+    example:1
+  })
+  @ApiOkResponse({
+    description: 'List of employees fetched successfully'
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized: JWT token is missing or invalid' })
+  @ApiForbiddenResponse({ description: 'Forbidden: Only Super Admin can access this endpoint' })
+  async fetchAllEmployees(@Param('page',ParseIntPipe) page:number) {
+    return this.employeeService.fetchAllEmployees(page);
   }
 
 }
