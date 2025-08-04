@@ -9,7 +9,6 @@ import { RegisterEmployeeDto } from './dto/EmployeeDto';
 import { catchBlock } from '../common/catch-block';
 import * as bcrypt from 'bcrypt';
 import { AssignMultiplePermissionsDto } from './dto/AssignMultiplePermissionsDto';
-import { EmployeeLoginDto } from './dto/EmployeeLoginDto';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import { sendCredentials } from '../common/send-credentails';
@@ -17,8 +16,7 @@ import { sendCredentials } from '../common/send-credentails';
 @Injectable()
 export class EmployeeService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly jwt: JwtService,
+    private readonly prisma: PrismaService
   ) {}
 
   // Registering a new employee
@@ -40,6 +38,17 @@ export class EmployeeService {
             name: roleName,
           },
         }));
+
+      await this.prisma.employee.findFirst({where:{
+        OR:[
+          {
+            mobile:employee?.mobile
+          },
+          {
+            email:employee?.email
+          }
+        ]
+      }}) && (()=>{throw new BadRequestException('Email or Mobile number is already in use')})()
 
       const allEmployees = await this.prisma.employee.findMany()
 
