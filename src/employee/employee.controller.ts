@@ -223,31 +223,31 @@ export class EmployeeController {
     return this.employeeService.getAllRoles(page,search,sortBy,normalizedFilter,fromDate,toDate);
   }
 
-  //Employee login
-  @Post('employee-login')
-  @ApiOperation({ summary: 'Employee login', description: 'Authenticates an employee and returns access/refresh tokens.' })
-  @ApiOkResponse({ description: 'Login successful' })
-  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  @ApiBadRequestResponse({ description: 'Invalid input payload' })
-  async employeeLogin(@Body() loginDto: EmployeeLoginDto) {
-    return this.employeeService.employeeLogin(loginDto);
-  }
+  // //Employee login
+  // @Post('employee-login')
+  // @ApiOperation({ summary: 'Employee login', description: 'Authenticates an employee and returns access/refresh tokens.' })
+  // @ApiOkResponse({ description: 'Login successful' })
+  // @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
+  // @ApiBadRequestResponse({ description: 'Invalid input payload' })
+  // async employeeLogin(@Body() loginDto: EmployeeLoginDto) {
+  //   return this.employeeService.employeeLogin(loginDto);
+  // }
 
-  //Fetching logged employee details
-  @UseGuards(VerifyEmployeeToken)
-  @Get('fetch-employee-details')
-  @ApiOperation({
-    summary: 'Fetch logged-in employee details',
-    description: 'Returns the details of the currently logged-in employee based on the verified token.',
-  })
-  @ApiOkResponse({
-    description: 'Successfully fetched employee details'
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized: Invalid or missing employee token' })
-  async fetchEmployeeDetails(@Req() req: Request) {
-    const employee = (req as any).employee;
-    return this.employeeService.loggedEmployeeDetails(employee?.token, employee?.username);
-  }
+  // //Fetching logged employee details
+  // @UseGuards(VerifyEmployeeToken)
+  // @Get('fetch-employee-details')
+  // @ApiOperation({
+  //   summary: 'Fetch logged-in employee details',
+  //   description: 'Returns the details of the currently logged-in employee based on the verified token.',
+  // })
+  // @ApiOkResponse({
+  //   description: 'Successfully fetched employee details'
+  // })
+  // @ApiUnauthorizedResponse({ description: 'Unauthorized: Invalid or missing employee token' })
+  // async fetchEmployeeDetails(@Req() req: Request) {
+  //   const employee = (req as any).employee;
+  //   return this.employeeService.loggedEmployeeDetails(employee?.token, employee?.username);
+  // }
 
   
   //Delete employee role

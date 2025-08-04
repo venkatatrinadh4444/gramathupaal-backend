@@ -12,6 +12,7 @@ import { AssignMultiplePermissionsDto } from './dto/AssignMultiplePermissionsDto
 import { EmployeeLoginDto } from './dto/EmployeeLoginDto';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
+import { sendCredentials } from '../common/send-credentails';
 
 @Injectable()
 export class EmployeeService {
@@ -40,16 +41,18 @@ export class EmployeeService {
           },
         }));
 
-      const length = (await this.prisma.employee.count()) + 1;
+      const allEmployees = await this.prisma.employee.findMany()
 
+      const recentEmployee = allEmployees?.[allEmployees.length-1]
 
-      const randomNumber = Math.random()
+      const empId = recentEmployee?.id
 
-      const idValue = 'EMP' + randomNumber.toString().slice(-3);
+      const digits = empId?.match(/\d+/)?.[0] || "000"
+
+      const idValue = 'EMP' + String((Number(digits)+1)).padStart(3,"0")
 
       const generateUsername =
-        name.trim().replace(/\s+/g, '').toLowerCase() +
-        randomNumber.toString().slice(-3);
+        name.trim().replace(/\s+/g, '').toLowerCase() + String((Number(digits)+1)).padStart(3,"0")
 
       const passwordString = name.slice(1);
 
@@ -73,6 +76,10 @@ export class EmployeeService {
           //   password: await bcrypt.hash(generatePassword, 10),
         },
       });
+
+      if(employee.email) {
+        sendCredentials(employee.email,generateUsername,generatePassword)
+      }
 
       return {
         message: 'New employee created successfully',
@@ -557,83 +564,83 @@ export class EmployeeService {
     }
   }
 
-  //Employee login
-  async employeeLogin(loginDto: EmployeeLoginDto) {
-    try {
-      const { username, password } = loginDto;
-      const emp: any =
-        (await this.prisma.employee.findFirst({
-          where: {
-            OR: [
-              {
-                email: username,
-              },
-              {
-                username: username,
-              },
-            ],
-          },
-        })) ||
-        (() => {
-          throw new UnauthorizedException('Employee not found!');
-        });
+  // //Employee login
+  // async employeeLogin(loginDto: EmployeeLoginDto) {
+  //   try {
+  //     const { username, password } = loginDto;
+  //     const emp: any =
+  //       (await this.prisma.employee.findFirst({
+  //         where: {
+  //           OR: [
+  //             {
+  //               email: username,
+  //             },
+  //             {
+  //               username: username,
+  //             },
+  //           ],
+  //         },
+  //       })) ||
+  //       (() => {
+  //         throw new UnauthorizedException('Employee not found!');
+  //       });
 
-      if (emp.password !== password) {
-        throw new UnauthorizedException('Invalid Credentials');
-      }
+  //     if (emp.password !== password) {
+  //       throw new UnauthorizedException('Invalid Credentials');
+  //     }
 
-      const allowedPermissions = await this.prisma.roleModuleAccess.findMany({
-        where: {
-          roleName: emp.roleName,
-        },
-      });
+  //     const allowedPermissions = await this.prisma.roleModuleAccess.findMany({
+  //       where: {
+  //         roleName: emp.roleName,
+  //       },
+  //     });
 
-      const emp_token = this.jwt.sign({
-        id: emp.id,
-        name: emp.name,
-        username: emp.username,
-        role: emp.roleName,
-      });
+  //     const emp_token = this.jwt.sign({
+  //       id: emp.id,
+  //       name: emp.name,
+  //       username: emp.username,
+  //       role: emp.roleName,
+  //     });
 
-      const employeeDetails = {
-        emp_token,
-        employeeDetails: emp,
-        allowedPermissions,
-      };
+  //     const employeeDetails = {
+  //       emp_token,
+  //       employeeDetails: emp,
+  //       allowedPermissions,
+  //     };
 
-      return { message: 'Employee login successfull', employeeDetails };
-    } catch (err) {
-      catchBlock(err);
-    }
-  }
+  //     return { message: 'Employee login successfull', employeeDetails };
+  //   } catch (err) {
+  //     catchBlock(err);
+  //   }
+  // }
 
-  //Fetching logged employee details
-  async loggedEmployeeDetails(token: string, username: string) {
-    try {
-      const emp = await this.prisma.employee.findFirst({
-        where: { username: username },
-      });
+  // //Fetching logged employee details
+  // async loggedEmployeeDetails(token: string, username: string) {
+  //   try {
+  //     const emp = await this.prisma.employee.findFirst({
+  //       where: { username: username },
+  //     });
 
-      const allowedPermissions = await this.prisma.roleModuleAccess.findMany({
-        where: {
-          roleName: emp?.roleName,
-        },
-      });
+  //     const allowedPermissions = await this.prisma.roleModuleAccess.findMany({
+  //       where: {
+  //         roleName: emp?.roleName,
+  //       },
+  //     });
 
-      const employeeDetails = {
-        emp_token: token,
-        employeeDetails: emp,
-        allowedPermissions,
-      };
+  //     const employeeDetails = {
+  //       emp_token: token,
+  //       employeeDetails: emp,
+  //       allowedPermissions,
+  //     };
 
-      return {
-        message: 'Showing the fetched employee details',
-        employeeDetails,
-      };
-    } catch (err) {
-      catchBlock(err);
-    }
-  }
+  //     return {
+  //       message: 'Showing the fetched employee details',
+  //       employeeDetails,
+  //     };
+  //   } catch (err) {
+  //     catchBlock(err);
+  //   }
+  // }
 
   //Deleting a specific role
   async deleteRole(id: number) {

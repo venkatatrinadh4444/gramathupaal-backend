@@ -30,6 +30,7 @@ import {
         (request as any).user = {
           id: decoded.id,
           email: decoded.email,
+          username:decoded?.username,
           role: decoded.role,
           token: user_token,
         };

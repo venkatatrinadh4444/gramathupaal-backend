@@ -52,7 +52,7 @@ export class UserController {
   @ApiBadRequestResponse({description:'Invalid credentials'})
   async getProfile(@Req() req:any) {
     const user = req.user
-    return { message: 'verified', user };
+    return this.userService.loggedUserDetails(user)
   }
 
   //Send OTP to email

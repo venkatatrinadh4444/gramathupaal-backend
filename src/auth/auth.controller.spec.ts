@@ -40,46 +40,39 @@ describe('AuthController', () => {
   });
 
   describe('login', () => {
-    it('should return user details and token on successful login', async () => {
+    it('should call AuthService.validateUser and return its result', async () => {
       const loginDto: LoginDto = { email: 'tom@example.com', password: 'pass123' };
-      const result = {
-        userDetails: { id: 1, name: 'Tom Holland', email: loginDto.email, role: 'SuperAdmin' },
-        token: 'test-token',
-      };
-      mockAuthService.validateUser.mockResolvedValue(result);
+      const mockResult = { message: 'Super Admin login successfull', token: 'test-token' };
 
-      const response = await authController.login(loginDto);
+      mockAuthService.validateUser.mockResolvedValue(mockResult);
+
+      const result = await authController.login(loginDto);
 
       expect(mockAuthService.validateUser).toHaveBeenCalledWith(loginDto);
-      expect(response).toEqual({
-        message: 'Login successful',
-        userDetails: result.userDetails,
-        token: result.token,
-      });
+      expect(result).toEqual(mockResult);
     });
   });
 
   describe('register', () => {
-    it('should return user details on successful registration', async () => {
+    it('should call AuthService.registerUser and return its result', async () => {
       const registerDto: RegisterDto = {
         email: 'tom@example.com',
         password: 'strongpassword',
         role: 'SuperAdmin',
       };
-      const mockResult = {
-        message: 'User registered successfully!',
-        user: { ...registerDto, id: 2 },
-      };
+      const mockResult = { message: 'User registered successfully!', user: { id: 2, ...registerDto } };
+
       mockAuthService.registerUser.mockResolvedValue(mockResult);
 
       const result = await authController.register(registerDto);
+
       expect(mockAuthService.registerUser).toHaveBeenCalledWith(registerDto);
       expect(result).toEqual(mockResult);
     });
   });
 
   describe('logoutUser', () => {
-    it('should throw error if token is missing', async () => {
+    it('should throw BadRequestException if no token is found', async () => {
       const req = { user: {} } as any;
       const res = {} as Response;
 
@@ -88,7 +81,7 @@ describe('AuthController', () => {
       );
     });
 
-    it('should return logout success message', async () => {
+    it('should return logout success message if token exists', async () => {
       const req = { user: { token: 'valid-token' } } as any;
       const json = jest.fn();
       const status = jest.fn().mockReturnValue({ json });
@@ -102,12 +95,12 @@ describe('AuthController', () => {
   });
 
   describe('generateNewToken', () => {
-    it('should return new token and user info', async () => {
+    it('should generate a new token and return it with user info', async () => {
       const user = { id: 1, email: 'tom@example.com', role: 'SuperAdmin' };
       const req = { user } as any;
-      const resJson = jest.fn();
-      const resStatus = jest.fn().mockReturnValue({ json: resJson });
-      const res = { status: resStatus } as any;
+      const json = jest.fn();
+      const status = jest.fn().mockReturnValue({ json });
+      const res = { status } as any;
 
       mockJwtService.sign.mockReturnValue('new-token');
 
@@ -118,8 +111,8 @@ describe('AuthController', () => {
         email: user.email,
         role: user.role,
       });
-      expect(resStatus).toHaveBeenCalledWith(200);
-      expect(resJson).toHaveBeenCalledWith({
+      expect(status).toHaveBeenCalledWith(200);
+      expect(json).toHaveBeenCalledWith({
         message: 'New token generated successfully!',
         user,
         token: 'new-token',

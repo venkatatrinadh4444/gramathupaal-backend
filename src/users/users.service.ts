@@ -107,7 +107,7 @@ export class UserService {
         (() => {
           throw new NotFoundException('User not found!');
         })();
-        
+
       (await bcrypt.compare(password, user?.password)) &&
         (() => {
           throw new BadRequestException(
@@ -129,6 +129,38 @@ export class UserService {
         throw err;
       }
       throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  //Fetching login in details
+  async loggedUserDetails(user: any) {
+    try {
+      const { token, username, role } = user;
+      if (role === 'SuperAdmin') {
+        return { message: 'SuperAdmin details fetched successfully!', user };
+      }
+      const emp = await this.prisma.employee.findFirst({
+        where: { username: username },
+      });
+
+      const allowedPermissions = await this.prisma.roleModuleAccess.findMany({
+        where: {
+          roleName: emp?.roleName,
+        },
+      });
+
+      const employeeDetails = {
+        emp_token: token,
+        employeeDetails: emp,
+        allowedPermissions,
+      };
+
+      return {
+        message: 'Showing the fetched employee details',
+        employeeDetails,
+      };
+    } catch (err) {
+      catchBlock(err);
     }
   }
 }

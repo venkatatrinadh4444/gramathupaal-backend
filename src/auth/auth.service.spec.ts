@@ -2,19 +2,23 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UserService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { BadRequestException } from '@nestjs/common';
 import { SelectedRole } from 'generated/prisma';
+
+jest.mock('../common/catch-block', () => ({
+  catchBlock: jest.fn(),
+}));
 
 describe('AuthService', () => {
   let authService: AuthService;
   let userService: Partial<Record<keyof UserService, jest.Mock>>;
   let jwtService: Partial<Record<keyof JwtService, jest.Mock>>;
+  let prismaService: PrismaService;
 
   const plainPassword = 'plainPassword';
   let hashedPassword: string;
-
-  jest.spyOn(console, 'log').mockImplementation(() => {});
 
   beforeEach(async () => {
     hashedPassword = await bcrypt.hash(plainPassword, 10);
@@ -28,11 +32,17 @@ describe('AuthService', () => {
       sign: jest.fn(),
     };
 
+    prismaService = {
+      employee: { findFirst: jest.fn() },
+      roleModuleAccess: { findMany: jest.fn() },
+    } as unknown as PrismaService;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: UserService, useValue: userService },
         { provide: JwtService, useValue: jwtService },
+        { provide: PrismaService, useValue: prismaService },
       ],
     }).compile();
 
@@ -45,24 +55,26 @@ describe('AuthService', () => {
       password: plainPassword,
     };
 
-    it('should return user details and token if credentials are valid', async () => {
+    it('should return Super Admin login success with token', async () => {
       const mockUser = {
         id: 1,
         email: 'test@example.com',
         password: hashedPassword,
-        role: 'user',
+        role: 'SuperAdmin',
         otp: '1234',
         expiresIn: new Date(),
         name: 'Test User',
       };
 
       userService.findByEmail!.mockResolvedValue(mockUser);
-      (jest.spyOn(bcrypt, 'compare') as jest.Mock).mockResolvedValue(true);
+      prismaService.employee.findFirst = jest.fn().mockResolvedValue(null);
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
       jwtService.sign!.mockReturnValue('mocked-jwt-token');
 
       const result = await authService.validateUser(loginDto);
 
       expect(result).toEqual({
+        message: 'Super Admin login successfull',
         userDetails: {
           id: mockUser.id,
           email: mockUser.email,
@@ -80,25 +92,80 @@ describe('AuthService', () => {
       });
     });
 
-    it('should throw BadRequest if user does not exist', async () => {
+    it('should return Employee login success with allowed permissions', async () => {
+      const mockEmployee = {
+        id: 2,
+        name: 'Employee One',
+        username: 'emp1',
+        email: 'test@example.com',
+        password: plainPassword,
+        roleName: 'Manager',
+      };
+
       userService.findByEmail!.mockResolvedValue(null);
+      prismaService.employee.findFirst = jest.fn().mockResolvedValue(mockEmployee);
+      prismaService.roleModuleAccess.findMany = jest
+        .fn()
+        .mockResolvedValue([{ module: 'Dashboard' }]);
+      jwtService.sign!.mockReturnValue('mocked-employee-token');
+
+      const result = await authService.validateUser(loginDto);
+
+      expect(result).toEqual({
+        message: 'Employee login successfull',
+        employeeDetails: {
+          token: 'mocked-employee-token',
+          employeeDetails: mockEmployee,
+          allowedPermissions: [{ module: 'Dashboard' }],
+        },
+      });
+
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        id: mockEmployee.id,
+        name: mockEmployee.name,
+        username: mockEmployee.username,
+        role: mockEmployee.roleName,
+      });
+    });
+
+    it('should throw BadRequestException if both user and employee are not found', async () => {
+      userService.findByEmail!.mockResolvedValue(null);
+      prismaService.employee.findFirst = jest.fn().mockResolvedValue(null);
 
       await expect(authService.validateUser(loginDto)).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw BadRequest if password is invalid', async () => {
+    it('should throw BadRequestException if user password is incorrect', async () => {
       const mockUser = {
         id: 1,
         email: 'test@example.com',
         password: hashedPassword,
-        role: 'user',
+        role: 'SuperAdmin',
         otp: '1234',
         expiresIn: new Date(),
         name: 'Test User',
       };
 
       userService.findByEmail!.mockResolvedValue(mockUser);
-      (jest.spyOn(bcrypt, 'compare') as jest.Mock).mockResolvedValue(false);
+      prismaService.employee.findFirst = jest.fn().mockResolvedValue(null);
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
+
+      await expect(authService.validateUser(loginDto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if employee password is incorrect', async () => {
+      const mockEmployee = {
+        id: 2,
+        name: 'Employee One',
+        username: 'emp1',
+        email: 'test@example.com',
+        password: 'wrongPass',
+        roleName: 'Manager',
+      };
+
+      userService.findByEmail!.mockResolvedValue(null);
+      prismaService.employee.findFirst = jest.fn().mockResolvedValue(mockEmployee);
+
       await expect(authService.validateUser(loginDto)).rejects.toThrow(BadRequestException);
     });
   });

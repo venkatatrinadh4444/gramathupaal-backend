@@ -3,8 +3,10 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { DocumentBuilder,SwaggerModule } from '@nestjs/swagger';
+import * as dotenv from 'dotenv'
 
 async function bootstrap() {
+  dotenv.config()
   const app = await NestFactory.create(AppModule);
   app.enableCors({
     origin:["https://gramathupaal.vercel.app","http://localhost:3000","https://gramathupal.vercel.app"],

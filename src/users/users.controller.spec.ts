@@ -5,12 +5,19 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { BadRequestException } from '@nestjs/common';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LoginDto } from '../auth/dto/login-user.dto';
+import { isEmail } from 'class-validator';
+
+jest.mock('class-validator', () => ({
+  ...jest.requireActual('class-validator'),
+  isEmail: jest.fn(),
+}));
 
 describe('UserController', () => {
   let controller: UserController;
   let userService: UserService;
 
   const mockUserService = {
+    loggedUserDetails: jest.fn(),
     updatePassword: jest.fn(),
     verifyOtp: jest.fn(),
     resetPassword: jest.fn(),
@@ -20,6 +27,7 @@ describe('UserController', () => {
     id: 1,
     email: 'user@example.com',
     role: 'user',
+    name: 'John Doe',
   };
 
   beforeEach(async () => {
@@ -47,25 +55,33 @@ describe('UserController', () => {
   });
 
   describe('getProfile', () => {
-    it('should return verified user', async () => {
+    it('should return logged user details from service', async () => {
+      mockUserService.loggedUserDetails.mockResolvedValueOnce({ message: 'verified', user: mockUser });
+
       const req = { user: mockUser };
       const result = await controller.getProfile(req);
+
+      expect(mockUserService.loggedUserDetails).toHaveBeenCalledWith(mockUser);
       expect(result).toEqual({ message: 'verified', user: mockUser });
     });
   });
 
   describe('forgetPassword (send-otp)', () => {
-    it('should throw error for invalid email', async () => {
-      await expect(
-        controller.forgetPassword('invalid-email')
-      ).rejects.toThrow(BadRequestException);
+    it('should throw BadRequestException for invalid email', async () => {
+      (isEmail as jest.Mock).mockReturnValueOnce(false);
+
+      await expect(controller.forgetPassword('invalid-email')).rejects.toThrow(
+        new BadRequestException('Please enter a valid email'),
+      );
     });
 
     it('should call updatePassword for valid email', async () => {
       const email = 'test@example.com';
+      (isEmail as jest.Mock).mockReturnValueOnce(true);
       mockUserService.updatePassword.mockResolvedValueOnce({ message: 'OTP sent' });
 
       const result = await controller.forgetPassword(email);
+
       expect(mockUserService.updatePassword).toHaveBeenCalledWith(email);
       expect(result).toEqual({ message: 'OTP sent' });
     });
@@ -77,6 +93,7 @@ describe('UserController', () => {
       mockUserService.verifyOtp.mockResolvedValueOnce({ message: 'OTP verified' });
 
       const result = await controller.verifyOtp(dto);
+
       expect(mockUserService.verifyOtp).toHaveBeenCalledWith(dto);
       expect(result).toEqual({ message: 'OTP verified' });
     });
@@ -88,6 +105,7 @@ describe('UserController', () => {
       mockUserService.resetPassword.mockResolvedValueOnce({ message: 'Password reset successful' });
 
       const result = await controller.resetPassword(loginDto);
+
       expect(mockUserService.resetPassword).toHaveBeenCalledWith(loginDto);
       expect(result).toEqual({ message: 'Password reset successful' });
     });

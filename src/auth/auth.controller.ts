@@ -76,13 +76,7 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto
   ) {
-    const resultData = await this.authService.validateUser(loginDto);
-
-    return {
-      message: 'Login successful',
-      userDetails: resultData.userDetails,
-      token: resultData?.token,
-    };
+    return this.authService.validateUser(loginDto)
   }
 
   //User registration
