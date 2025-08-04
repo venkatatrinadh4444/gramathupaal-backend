@@ -44,7 +44,7 @@ export class AuthService {
       }
 
       if(user) {
-        (await bcrypt.compare(loginDto.password, user?.password)) ||
+        (await bcrypt.compare(user?.password,loginDto.password)) ||
         (() => {
           throw new BadRequestException('Invalid credentials');
         })();

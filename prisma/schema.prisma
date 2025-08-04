@@ -265,6 +265,8 @@ model Employee {
   username String
   password String
   address String
+  otp String?
+  expiresIn String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -51,10 +51,17 @@ export class UserService {
   //Send OTP to email
   async updatePassword(email: string) {
     try {
-      (await this.prisma.user.findFirst({ where: { email } })) ||
-        (() => {
-          throw new NotFoundException('User not found!');
-        })();
+      
+      const [user, employee] = await Promise.all([
+        this.prisma.user.findFirst({ where: { email } }),
+        this.prisma.employee.findFirst({ where: { email } }),
+      ]);
+
+      if (!user && !employee) {
+        throw new UnauthorizedException(
+          'Please enter a valid email or username',
+        );
+      }
 
       const otp = otpGenerator.generate(6, {
         digits: true,
@@ -67,14 +74,25 @@ export class UserService {
 
       sendOtpToUser(email, otp);
 
-      await this.prisma.user.update({
-        where: { email },
-        data: {
-          otp,
-          expiresIn: String(expiresIn),
-        },
-      });
+      if(user) {
+        await this.prisma.user.update({
+          where: { email },
+          data: {
+            otp,
+            expiresIn: String(expiresIn),
+          },
+        });
+      }
 
+      if(employee) {
+        await this.prisma.employee.update({
+          where: { id:employee.id },
+          data:{
+            otp,
+            expiresIn:String(expiresIn)
+          }
+        })
+      }
       return { message: 'otp sended successfully!' };
     } catch (err) {
       catchBlock(err);
@@ -85,10 +103,27 @@ export class UserService {
   async verifyOtp(data: VerifyOtpDto) {
     try {
       const { email, otp } = data;
-      const user = await this.prisma.user.findFirst({ where: { email } });
+      const [user, employee] = await Promise.all([
+        this.prisma.user.findFirst({ where: { email } }),
+        this.prisma.employee.findFirst({ where: { email } }),
+      ]);
 
-      if (user?.otp !== otp || Date.now() > Number(user.expiresIn)) {
-        throw new UnauthorizedException('OTP is invalid or expired');
+      if (!user && !employee) {
+        throw new UnauthorizedException(
+          'Please enter a valid email or username',
+        );
+      }
+
+      if(user) {
+        if (user?.otp !== otp || Date.now() > Number(user.expiresIn)) {
+          throw new UnauthorizedException('OTP is invalid or expired');
+        }
+      }
+
+      if(employee) {
+        if(employee?.otp!==otp || Date.now() > Number(employee.expiresIn)) {
+          throw new UnauthorizedException('OTP is invalid or expired');
+        }
       }
 
       return { message: 'OTP verified successfully!' };
@@ -102,19 +137,25 @@ export class UserService {
     try {
       const { email, password } = loginDto;
 
-      const user =
-        (await this.prisma.user.findFirst({ where: { email } })) ||
-        (() => {
-          throw new NotFoundException('User not found!');
-        })();
+      const [user, employee] = await Promise.all([
+        this.prisma.user.findFirst({ where: { email } }),
+        this.prisma.employee.findFirst({ where: { email } }),
+      ]);
 
+      if (!user && !employee) {
+        throw new UnauthorizedException(
+          'Please enter a valid email or username',
+        );
+      }
+
+      if(user) {
       (await bcrypt.compare(password, user?.password)) &&
         (() => {
           throw new BadRequestException(
             'Please choose a password different from your current one',
           );
         })();
-
+      
       await this.prisma.user.update({
         where: { email },
         data: {
@@ -123,7 +164,26 @@ export class UserService {
           expiresIn: '',
         },
       });
+    }
+
+    if(employee) {
+      if(employee.password===password) {
+        throw new BadRequestException(
+          'Please choose a password different from your current one',
+        );
+      }
+      await this.prisma.employee.update({
+        where:{id:employee.id},
+        data :{
+          password:password,
+          otp:'',
+          expiresIn:''
+        }
+      })
+    }
+
       return { message: 'Password updated successfully!' };
+      
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;
