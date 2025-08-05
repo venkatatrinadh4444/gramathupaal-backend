@@ -5,9 +5,6 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { VerifySuperAdmin } from '../common/guards/verify-super-admin.guard';
 import { RegisterEmployeeDto } from './dto/EmployeeDto';
 import { AssignMultiplePermissionsDto } from './dto/AssignMultiplePermissionsDto';
-import { EmployeeLoginDto } from './dto/EmployeeLoginDto';
-import { VerifyEmployeeToken } from '../common/guards/verify-employee-token.guard';
-import { Request } from 'express';
 
 @ApiTags('Employee Module')
 @ApiBearerAuth('access-token')

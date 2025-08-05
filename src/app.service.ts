@@ -7,5 +7,4 @@ export class AppService {
         <b style="color:green;">Backend for Gramathupaal project</b>
         </div>`
     }
-
 }

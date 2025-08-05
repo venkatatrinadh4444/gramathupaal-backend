@@ -2,7 +2,6 @@ import { IsDateString, IsDecimal, IsEnum,  IsInt,  IsNotEmpty, IsString, Matches
 
 import { HealthStatus,CattleType,CattleBreed,InseminationType,ParentOrigin } from "@prisma/client";
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 
 export class AddAnimalDto {
     @ApiProperty({example:'Kaveri-004',description:'Cattle ID'})
