@@ -44,7 +44,11 @@ describe('AnimalService', () => {
         findMany: jest.fn(),
       },
       vaccination: { findMany: jest.fn() },
-      feedConsumption: { aggregate: jest.fn(), count: jest.fn(), findMany: jest.fn() },
+      feedConsumption: {
+        aggregate: jest.fn(),
+        count: jest.fn(),
+        findMany: jest.fn(),
+      },
       calf: { create: jest.fn(), findMany: jest.fn(), count: jest.fn() },
       checkup: { findMany: jest.fn(), count: jest.fn() },
       feedStock: { findMany: jest.fn() },
@@ -96,7 +100,9 @@ describe('AnimalService', () => {
 
     it('should throw on duplicate cattleName', async () => {
       prisma.cattle.findFirst.mockResolvedValue({ id: 1 });
-      await expect(service.addAnimal(dto, file, file, 1)).rejects.toThrow(BadRequestException);
+      await expect(service.addAnimal(dto, file, file, 1)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -104,15 +110,28 @@ describe('AnimalService', () => {
   describe('gettingAllCattles', () => {
     it('should retrieve cattle list with filters and pagination', async () => {
       prisma.cattle.count.mockResolvedValue(2);
-      prisma.cattle.findMany.mockResolvedValue([{ cattleName: 'A' }, { cattleName: 'B' }]);
-      prisma.milk.aggregate.mockResolvedValue({ _avg: { morningMilk: 1, afternoonMilk: 1, eveningMilk: 1 } });
-      const res = await service.gettingAllCattles(1, 'newest', ['COW', 'KARAMPASU'], '2023-01-01', '2023-01-31');
+      prisma.cattle.findMany.mockResolvedValue([
+        { cattleName: 'A' },
+        { cattleName: 'B' },
+      ]);
+      prisma.milk.aggregate.mockResolvedValue({
+        _avg: { morningMilk: 1, afternoonMilk: 1, eveningMilk: 1 },
+      });
+      const res = await service.gettingAllCattles(
+        1,
+        'newest',
+        ['COW', 'KARAMPASU'],
+        '2023-01-01',
+        '2023-01-31',
+      );
       expect(res?.allCattles.length).toBe(2);
       expect(res?.message).toMatch(/data/i);
     });
 
     it('should throw on invalid sort option', async () => {
-      await expect(service.gettingAllCattles(1, 'invalid-sort', [], '', '')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.gettingAllCattles(1, 'invalid-sort', [], '', ''),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -120,9 +139,13 @@ describe('AnimalService', () => {
   describe('showingParticularAnimal', () => {
     it('returns full animal details', async () => {
       prisma.cattle.findFirst.mockResolvedValue({ cattleName: 'TestCattle' });
-      prisma.milk.aggregate.mockResolvedValue({ _avg: { morningMilk: 5, afternoonMilk: 5, eveningMilk: 5 } });
+      prisma.milk.aggregate.mockResolvedValue({
+        _avg: { morningMilk: 5, afternoonMilk: 5, eveningMilk: 5 },
+      });
       prisma.vaccination.findMany.mockResolvedValue([{ date: new Date() }]);
-      prisma.feedConsumption.aggregate.mockResolvedValue({ _avg: { quantity: 10 } });
+      prisma.feedConsumption.aggregate.mockResolvedValue({
+        _avg: { quantity: 10 },
+      });
       prisma.calf.count.mockResolvedValue(3);
       const res = await service.showingParticularAnimal('TestCattle');
       expect(res?.animalDetails.calfCount).toBe(3);
@@ -131,7 +154,9 @@ describe('AnimalService', () => {
 
     it('should throw if not found', async () => {
       prisma.cattle.findFirst.mockResolvedValue(null);
-      await expect(service.showingParticularAnimal('Nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.showingParticularAnimal('Nonexistent'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -163,7 +188,9 @@ describe('AnimalService', () => {
 
     it('throws if animal not found', async () => {
       prisma.cattle.findFirst.mockResolvedValue(null);
-      await expect(service.updateParticularAnimalDetails(999, dto)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.updateParticularAnimalDetails(999, dto),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -178,14 +205,19 @@ describe('AnimalService', () => {
 
     it('throws if animal does not exist', async () => {
       prisma.cattle.findFirst.mockResolvedValue(null);
-      await expect(service.deleteParticularAnimal(999)).rejects.toThrow(NotFoundException);
+      await expect(service.deleteParticularAnimal(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   // 6. gettingAllCattleIds
   describe('gettingAllCattleIds', () => {
     it('returns list of active cattle IDs', async () => {
-      prisma.cattle.findMany.mockResolvedValue([{ cattleName: 'C1' }, { cattleName: 'C2' }]);
+      prisma.cattle.findMany.mockResolvedValue([
+        { cattleName: 'C1' },
+        { cattleName: 'C2' },
+      ]);
       const res = await service.gettingAllCattleIds();
       expect(res?.allCattlesIds.length).toBe(2);
     });
@@ -203,7 +235,9 @@ describe('AnimalService', () => {
 
     it('throws if cattle not found', async () => {
       prisma.cattle.findFirst.mockResolvedValue(null);
-      await expect(service.getFeedHistory('NoFeed',1)).rejects.toThrow(NotFoundException);
+      await expect(service.getFeedHistory('NoFeed', 1)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -219,7 +253,9 @@ describe('AnimalService', () => {
 
     it('throws when cattle not found', async () => {
       prisma.cattle.findFirst.mockResolvedValue(null);
-      await expect(service.milkProductionHistory('NoMilk', 1)).rejects.toThrow(NotFoundException);
+      await expect(service.milkProductionHistory('NoMilk', 1)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -235,40 +271,49 @@ describe('AnimalService', () => {
 
     it('throws if no such cattle', async () => {
       prisma.cattle.findFirst.mockResolvedValue(null);
-      await expect(service.getCheckupHistory('NoCheck', 1)).rejects.toThrow(NotFoundException);
+      await expect(service.getCheckupHistory('NoCheck', 1)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   // 10. getDataForDashboardTopSection
   describe('getDataForDashboardTopSection', () => {
     it('returns dashboard data for valid queries including date range', async () => {
-        prisma.milk.aggregate.mockResolvedValue({ _sum: { morningMilk: 10, afternoonMilk: 10, eveningMilk: 10 } });
-        prisma.cattle.count.mockResolvedValue(10);
-        prisma.checkup.count.mockResolvedValue(5);
-        prisma.feedStock.findMany.mockResolvedValue([{ id: 1 }]);
-      
-        // Queries with explicit date range (message contains dates)
-        const fromDate = '2022-01-01';
-        const toDate = '2022-01-31';
-      
-        for (const q of ['Week', 'Month', 'Quarter', 'Year']) {
-          const res = await service.getDataForDashboardTopSection(q, fromDate, toDate);
-          expect(res?.cards.length).toBe(5);
-          // For date range, message contains dates, not period string
-          expect(res?.message).toContain(`${fromDate} to ${toDate}`);
-        }
-      
-        // Without date range, message contains period like 'Week'
-        for (const q of ['Week', 'Month', 'Quarter', 'Year']) {
-          const res = await service.getDataForDashboardTopSection(q, '', '');
-          expect(res?.cards.length).toBe(5);
-          expect(res?.message).toContain(q);
-        }
+      prisma.milk.aggregate.mockResolvedValue({
+        _sum: { morningMilk: 10, afternoonMilk: 10, eveningMilk: 10 },
       });
-      
+      prisma.cattle.count.mockResolvedValue(10);
+      prisma.checkup.count.mockResolvedValue(5);
+      prisma.feedStock.findMany.mockResolvedValue([{ id: 1 }]);
+
+      // Queries with explicit date range (message contains dates)
+      const fromDate = '2022-01-01';
+      const toDate = '2022-01-31';
+
+      for (const q of ['Week', 'Month', 'Quarter', 'Year']) {
+        const res = await service.getDataForDashboardTopSection(
+          q,
+          fromDate,
+          toDate,
+        );
+        expect(res?.cards.length).toBe(5);
+        // For date range, message contains dates, not period string
+        expect(res?.message).toContain(`${fromDate} to ${toDate}`);
+      }
+
+      // Without date range, message contains period like 'Week'
+      for (const q of ['Week', 'Month', 'Quarter', 'Year']) {
+        const res = await service.getDataForDashboardTopSection(q, '', '');
+        expect(res?.cards.length).toBe(5);
+        expect(res?.message).toContain(q);
+      }
+    });
 
     it('throws for invalid query', async () => {
-      await expect(service.getDataForDashboardTopSection('Invalid', '', '')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.getDataForDashboardTopSection('Invalid', '', ''),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -293,7 +338,9 @@ describe('AnimalService', () => {
     });
 
     it('throws on invalid query', async () => {
-      await expect(service.getHealthRecordsForDashboardGraph('Invalid')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.getHealthRecordsForDashboardGraph('Invalid'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -309,7 +356,9 @@ describe('AnimalService', () => {
     });
 
     it('throws on invalid feed stock query', async () => {
-      await expect(service.getDashboardFeedStockRecords('Invalid')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.getDashboardFeedStockRecords('Invalid'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -333,10 +382,10 @@ describe('AnimalService', () => {
     });
 
     it('returns undefined if cattle not found when adding calf', async () => {
-        prisma.cattle.findFirst.mockResolvedValue(null);
-        const result = await service.addNewCalf(calfDto as any);
-        expect(result).toBeUndefined();
-      });      
+      prisma.cattle.findFirst.mockResolvedValue(null);
+      const result = await service.addNewCalf(calfDto as any);
+      expect(result).toBeUndefined();
+    });
   });
 
   // 15. allCalfDetails
@@ -350,16 +399,40 @@ describe('AnimalService', () => {
 
     it('throws if bad cattle name', async () => {
       prisma.cattle.findFirst.mockResolvedValue(null);
-      await expect(service.allCalfDetails('BadName')).rejects.toThrow(BadRequestException);
+      await expect(service.allCalfDetails('BadName')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
   // 16. generateCattleId
+  // 16. generateCattleId
   describe('generateCattleId', () => {
-    it('returns new cattle ID string', async () => {
-      prisma.cattle.count.mockResolvedValue(42);
+    it('returns new cattle ID string based on last cattleName', async () => {
+      prisma.cattle.findFirst.mockResolvedValue({
+        cattleName: 'cow-41',
+      });
+
       const res = await service.generateCattleId('Cow');
       expect(res?.cattleId).toBe('cow-42');
+      expect(res?.message).toContain('generated');
+    });
+
+    it('returns cow-1 if no previous cattle is found', async () => {
+      prisma.cattle.findFirst.mockResolvedValue(null);
+
+      const res = await service.generateCattleId('Cow');
+      expect(res?.cattleId).toBe('cow-1');
+      expect(res?.message).toContain('generated');
+    });
+
+    it('handles cattleName not having "-" gracefully', async () => {
+      prisma.cattle.findFirst.mockResolvedValue({
+        cattleName: 'cow',
+      });
+
+      const res = await service.generateCattleId('Cow');
+      expect(res?.cattleId).toBe('cow-1');
       expect(res?.message).toContain('generated');
     });
   });
@@ -373,5 +446,4 @@ describe('AnimalService', () => {
       expect(res?.message).toContain('generated');
     });
   });
-
 });

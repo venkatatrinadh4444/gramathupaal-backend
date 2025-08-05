@@ -1094,10 +1094,12 @@ export class AnimalService {
   }
 
   // Creating a dynamic id for cattle name
-  async generateCattleId(type: string) {
+  async generateCattleId(type:string) {
     try {
-      const length = await this.prisma.cattle.count();
-      const cattleId = `${type.toLocaleLowerCase()}-${length}`;
+      const slectedType = type as CattleType
+      const recentAnimal = await this.prisma.cattle.findFirst({where:{type:slectedType},orderBy:{updatedAt:'desc'}})
+      const recentAnimalIdValue = recentAnimal?.cattleName?.split('-')?.[1] || 0
+      const cattleId = `${type.toLocaleLowerCase()}-${Number(recentAnimalIdValue)+1}`;
       return { message: 'New Cattle ID generated', cattleId };
     } catch (err) {
       catchBlock(err);

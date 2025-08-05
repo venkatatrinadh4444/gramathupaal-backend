@@ -117,8 +117,8 @@ describe('VaccinationService', () => {
       const result = await service.fetchingAllVaccinationRecords(1, 'name-asc', [], '', '', '');
 
       expect(prisma.vaccination.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: { name: 'asc' } }),
-      );
+        expect.objectContaining({ orderBy: { cattle: { cattleName: 'asc' } } }),
+      );      
       expect(result?.checkupDashboard.totalRecordCount).toBe(3);
     });
 
@@ -132,7 +132,7 @@ describe('VaccinationService', () => {
 
       expect(prisma.vaccination.count).toHaveBeenCalled();
       expect(prisma.vaccination.findMany).toHaveBeenCalled();
-      expect(result?.message).toMatch(/searched/i);
+      expect(result?.message).toBe('Showing filtered vaccination records');
       expect(result?.checkupDashboard.totalRecordCount).toBe(2);
     });
 

@@ -98,7 +98,7 @@ export class CheckupService {
             allCheckups = await this.prisma.checkup.findMany({
               orderBy:{
                cattleName:'asc'
-              },          
+              },
               select: {
                 id: true,
                 date: true,
@@ -106,6 +106,7 @@ export class CheckupService {
                 description: true,
                 doctorName: true,
                 doctorPhone: true,
+                cattleName:true,
                 cattle: {
                   select: {
                     image1: true,
@@ -123,7 +124,7 @@ export class CheckupService {
             allCheckups = await this.prisma.checkup.findMany({
               orderBy:{
                 cattleName:'desc'
-              },             
+              },
               select: {
                 id: true,
                 date: true,
@@ -167,7 +168,7 @@ export class CheckupService {
               take: limit,
             });
             break;
-          case 'descending':
+          case 'oldest':
             allCheckups = await this.prisma.checkup.findMany({
               orderBy: { date: 'asc' },
               select: {
@@ -381,6 +382,7 @@ export class CheckupService {
       catchBlock(err);
     }
   }
+  
 
   //Fetch specific animal checkup records
   async gettingParticularAnimalCheckups(cattleName: string) {
@@ -498,7 +500,7 @@ export class CheckupService {
               gte: startTime,
               lte: endTime,
             },
-            healthStatus:'INJURED'
+            healthStatus: 'INJURED',
           },
         });
         return { totalCheckups, totalIllnessCases };
@@ -687,5 +689,4 @@ export class CheckupService {
       catchBlock(err);
     }
   }
-
 }
