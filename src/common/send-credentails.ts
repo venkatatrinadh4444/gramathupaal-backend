@@ -8,6 +8,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+
 export const sendCredentials = (email: string, username: string, password: string) => {
   const options = {
     from: 'no-reply@gmail.com',

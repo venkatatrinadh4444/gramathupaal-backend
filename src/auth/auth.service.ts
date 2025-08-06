@@ -86,7 +86,7 @@ export class AuthService {
           allowedPermissions,
         };
   
-        return { message: 'Employee login successfull', employeeDetails };
+        return { message: 'Employee login successfull', employeeDetails,token };
       }
 
     } catch (err) {

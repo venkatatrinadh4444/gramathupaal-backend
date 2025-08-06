@@ -73,9 +73,6 @@ export class EmployeeService {
         passwordString.trim().replace(/\s+/g, '').toLowerCase() +
         '@1234';
 
-        console.log(empId)
-        console.log(idValue)
-
       await this.prisma.employee.create({
         data: {
           role: {
@@ -93,6 +90,7 @@ export class EmployeeService {
       });
 
       if(employee.email) {
+        console.log(employee.email)
         sendCredentials(employee.email,generateUsername,generatePassword)
       }
 
