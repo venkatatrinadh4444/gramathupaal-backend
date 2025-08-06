@@ -17,7 +17,6 @@ import {
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AddAnimalDto } from './dto/add-animal.dto';
 import { AnimalService } from './animal.service';
-import { VerifySuperAdmin } from '../common/guards/verify-super-admin.guard';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -216,7 +215,7 @@ export class AnimalController {
   }
 
   //Delete specific animal
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Delete('delete-animal/:id')
   @ApiOperation({ summary: 'Delete an animal (Super Admin only)' })
   @ApiParam({

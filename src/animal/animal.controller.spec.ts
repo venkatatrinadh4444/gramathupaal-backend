@@ -11,7 +11,6 @@ import {
   SelectGender,
 } from '@prisma/client';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { VerifySuperAdmin } from '../common/guards/verify-super-admin.guard';
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -90,9 +89,6 @@ describe('AnimalController', () => {
   const mockJwtAuthGuard = {
     canActivate: jest.fn((context: ExecutionContext) => true),
   };
-  const mockVerifySuperAdminGuard = {
-    canActivate: jest.fn((context: ExecutionContext) => true),
-  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -101,8 +97,6 @@ describe('AnimalController', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue(mockJwtAuthGuard)
-      .overrideGuard(VerifySuperAdmin)
-      .useValue(mockVerifySuperAdminGuard)
       .compile();
 
     controller = module.get<AnimalController>(AnimalController);

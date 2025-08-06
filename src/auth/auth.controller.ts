@@ -162,6 +162,7 @@ export class AuthController {
     return res.status(200).json({ message: 'Logout successful!' });
   }
 
+  //Genererate a refresh token based on the existing token
   @UseGuards(JwtAuthGuard)
   @Get('/refresh-token')
   @ApiOperation({ summary: 'Generating a new JWT token' })
@@ -198,6 +199,8 @@ export class AuthController {
 
     const token = this.jwtService.sign({
       id: user?.id,
+      name:user?.name,
+      username:user?.username,
       email: user?.email,
       role: user?.role,
     })

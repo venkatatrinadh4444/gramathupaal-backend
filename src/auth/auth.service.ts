@@ -73,6 +73,7 @@ export class AuthService {
           name: employee.name,
           username: employee.username,
           role: employee.roleName,
+          email:employee?.email
         });
         const allowedPermissions = await this.prisma.roleModuleAccess.findMany({
           where: {
@@ -80,13 +81,13 @@ export class AuthService {
           },
         });
   
-        const employeeDetails = {
+        const userDetails = {
           token,
           employeeDetails: employee,
           allowedPermissions,
         };
   
-        return { message: 'Employee login successfull', employeeDetails,token };
+        return { message: 'Employee login successfull', userDetails,token };
       }
 
     } catch (err) {

@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EmployeeController } from './employee.controller';
 import { EmployeeService } from './employee.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { VerifySuperAdmin } from '../common/guards/verify-super-admin.guard';
 import { RegisterEmployeeDto } from './dto/EmployeeDto';
 import { AssignMultiplePermissionsDto } from './dto/AssignMultiplePermissionsDto';
 import { BadRequestException } from '@nestjs/common';
@@ -39,7 +38,6 @@ describe('EmployeeController', () => {
       providers: [{ provide: EmployeeService, useValue: mockService }],
     })
       .overrideGuard(JwtAuthGuard).useValue(mockAuthGuard)
-      .overrideGuard(VerifySuperAdmin).useValue(mockSuperAdminGuard)
       .compile();
 
     controller = module.get<EmployeeController>(EmployeeController);

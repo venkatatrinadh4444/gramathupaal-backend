@@ -249,7 +249,8 @@ export class EmployeeService {
           name,
           ...restOfValues,
           username: generateUsername,
-          password: await bcrypt.hash(generatePassword, 10),
+          password:generatePassword
+          // password: await bcrypt.hash(generatePassword, 10),
         },
       });
 

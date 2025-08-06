@@ -197,7 +197,7 @@ export class UserService {
     try {
       const { token, username, role } = user;
       if (role === 'SuperAdmin') {
-        return { message: 'SuperAdmin details fetched successfully!', user };
+        return { message: 'SuperAdmin details fetched successfully!', userDetails:user,token };
       }
       const emp = await this.prisma.employee.findFirst({
         where: { username: username },
@@ -209,7 +209,7 @@ export class UserService {
         },
       });
 
-      const employeeDetails = {
+      const userDetails = {
         emp_token: token,
         employeeDetails: emp,
         allowedPermissions,
@@ -217,7 +217,8 @@ export class UserService {
 
       return {
         message: 'Showing the fetched employee details',
-        employeeDetails,
+        userDetails,
+        token
       };
     } catch (err) {
       catchBlock(err);

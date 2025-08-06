@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, R
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EmployeeService } from './employee.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { VerifySuperAdmin } from '../common/guards/verify-super-admin.guard';
 import { RegisterEmployeeDto } from './dto/EmployeeDto';
 import { AssignMultiplePermissionsDto } from './dto/AssignMultiplePermissionsDto';
 
@@ -13,7 +12,7 @@ export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
  // Registering a new employee
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Post('create-employee')
   @ApiOperation({ summary: 'Register a new employee (Super Admin only)' })
   @ApiBody({
@@ -41,7 +40,7 @@ export class EmployeeController {
   }
 
   //Adding or updating the access permissions
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Post('add-permissions')
   @ApiOperation({
     summary: 'Assign or update access permissions for multiple modules to a role',
@@ -104,10 +103,6 @@ export class EmployeeController {
     status: 401,
     description: 'Unauthorized - Missing or invalid JWT',
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Only accessible by Super Admin',
-  })
   async addPermissions(
     @Body() permissions: AssignMultiplePermissionsDto,
   ) {
@@ -115,7 +110,7 @@ export class EmployeeController {
   }
 
   //Fetching all employees based on the role
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Get('fetch-all-employees/:role/:page')
   @ApiOperation({ summary: 'Fetch all employees', description: 'Returns the list of all employees. Only accessible by Super Admin.' })
   @ApiParam({
@@ -140,7 +135,7 @@ export class EmployeeController {
   }
 
   //Edit the employee details
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Put('edit-employee/:id')
   @ApiOperation({ summary: 'Edit employee', description: 'Edits the details of an existing employee. Accessible only by Super Admin.' })
   @ApiOkResponse({ description: 'Employee updated successfully' })
@@ -156,7 +151,7 @@ export class EmployeeController {
   }
 
   //Delete employee
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Delete('delete-employee/:id')
   @ApiOperation({ summary: 'Soft delete employee', description: 'Marks the employee as inactive (soft delete). Accessible only by Super Admin.' })
   @ApiOkResponse({ description: 'Employee soft-deleted successfully' })
@@ -168,7 +163,7 @@ export class EmployeeController {
   }
 
   //Get all the details for dashboard based on roles
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Get('fetch-all-roles/:page')
   @ApiOperation({ summary: 'Fetch all roles', description: 'Returns a list of all roles in the system. Accessible only by Super Admin.' })
   @ApiParam({
@@ -248,7 +243,7 @@ export class EmployeeController {
 
   
   //Delete employee role
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Delete('delete-role/:id')
   @ApiOperation({ summary: 'Soft delete employee', description: 'Marks the employee role as inactive (soft delete). Accessible only by Super Admin.' })
   @ApiOkResponse({ description: 'Employee role soft-deleted successfully' })
@@ -260,7 +255,7 @@ export class EmployeeController {
   }
 
   //Fetching all employees from the db
-  @UseGuards(JwtAuthGuard, VerifySuperAdmin)
+  @UseGuards(JwtAuthGuard)
   @Get('fetch-all-employees/:page')
   @ApiOperation({ summary: 'Fetch all employees', description: 'Returns the list of all employees. Only accessible by Super Admin.' })
   @ApiParam({

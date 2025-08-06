@@ -78,4 +78,5 @@ export class RegisterEmployeeDto {
   @IsNotEmpty()
   @IsString()
   address:string
+
 }

@@ -257,24 +257,32 @@ describe('UserService', () => {
     it('should return SuperAdmin details', async () => {
       const user = { role: 'SuperAdmin', token: 't', username: 'u' };
       const result = await service.loggedUserDetails(user);
-      expect(result).toEqual({ message: 'SuperAdmin details fetched successfully!', user });
+  
+      expect(result).toEqual({
+        message: 'SuperAdmin details fetched successfully!',
+        userDetails: user,
+        token: 't',
+      });
     });
-
+  
     it('should return employee details for non-SuperAdmin', async () => {
       const user = { role: 'Employee', token: 't', username: 'emp1' };
+  
       (prisma.employee.findFirst as jest.Mock).mockResolvedValue({ roleName: 'Manager' });
       (prisma.roleModuleAccess.findMany as jest.Mock).mockResolvedValue(['perm1', 'perm2']);
-
+  
       const result = await service.loggedUserDetails(user);
-
+  
       expect(result).toEqual({
         message: 'Showing the fetched employee details',
-        employeeDetails: {
+        userDetails: {
           emp_token: 't',
           employeeDetails: { roleName: 'Manager' },
           allowedPermissions: ['perm1', 'perm2'],
         },
+        token: 't',
       });
     });
-  });
+  });  
+
 });

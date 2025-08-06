@@ -101,32 +101,35 @@ describe('AuthService', () => {
         password: plainPassword,
         roleName: 'Manager',
       };
-
+    
       userService.findByEmail!.mockResolvedValue(null);
       prismaService.employee.findFirst = jest.fn().mockResolvedValue(mockEmployee);
       prismaService.roleModuleAccess.findMany = jest
         .fn()
         .mockResolvedValue([{ module: 'Dashboard' }]);
       jwtService.sign!.mockReturnValue('mocked-employee-token');
-
+    
       const result = await authService.validateUser(loginDto);
-
+    
       expect(result).toEqual({
         message: 'Employee login successfull',
-        employeeDetails: {
+        userDetails: {
           token: 'mocked-employee-token',
           employeeDetails: mockEmployee,
           allowedPermissions: [{ module: 'Dashboard' }],
         },
+        token: 'mocked-employee-token',
       });
-
+    
       expect(jwtService.sign).toHaveBeenCalledWith({
         id: mockEmployee.id,
         name: mockEmployee.name,
         username: mockEmployee.username,
         role: mockEmployee.roleName,
+        email: mockEmployee.email,
       });
     });
+    
 
     it('should throw BadRequestException if both user and employee are not found', async () => {
       userService.findByEmail!.mockResolvedValue(null);
